@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nearest to the Pin Leaderboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
+    body { background: #0b0f14; color: #ffffff; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; }
+    .container { display: flex; flex-direction: column; width: 100%; max-width: 1200px; background: #111827; border-radius: 12px; overflow: hidden; box-shadow: 0 0 15px rgba(0,0,0,0.5); transition: all 0.5s ease; }
+    @media(min-width: 768px){ .container { flex-direction: row; } }
+
+    .left-panel { flex: 1; padding: 30px; background: linear-gradient(135deg, #111827, #030712); display: flex; flex-direction: column; justify-content: space-between; }
+    .logo { font-size: 3rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 20px; text-align: center; }
+    .instructions h2 { font-size: 2rem; margin-bottom: 10px; text-align: center; }
+    .instructions p { font-size: 1.2rem; line-height: 1.4; margin-bottom: 8px; color: #d1d5db; text-align: center; }
+    .prize-box { margin-top: 20px; padding: 20px; border: 2px solid #22c55e; border-radius: 12px; text-align: center; }
+    .prize-box h3 { font-size: 1.5rem; margin-bottom: 10px; color: #22c55e; }
+    .prize-box p { font-size: 1.1rem; margin-bottom: 5px; }
+
+    .right-panel { flex: 1; padding: 20px; background: #020617; overflow-x: auto; }
+    .leaderboard-title { font-size: 2rem; margin-bottom: 20px; border-bottom: 3px solid #3b82f6; padding-bottom: 10px; text-align: center; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 1rem; color: #9ca3af; padding-bottom: 10px; }
+    td { padding: 12px 5px; font-size: 1.2rem; border-bottom: 1px solid #1f2933; transition: all 0.5s ease; }
+    .rank { width: 50px; }
+    .distance { text-align: right; font-weight: bold; }
+
+    tr.gold td { color: #facc15; font-weight: bold; }
+    tr.silver td { color: #e5e7eb; font-weight: bold; }
+    tr.bronze td { color: #f97316; font-weight: bold; }
+
+    /* SLIDE IN ANIMATION */
+    tr.moved { animation: slideUp 0.6s ease forwards; }
+    @keyframes slideUp {
+      0% { transform: translateY(20px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    @media(max-width: 480px){
+      .logo { font-size: 2rem; }
+      .instructions h2 { font-size: 1.5rem; }
+      .instructions p, .prize-box p { font-size: 1rem; }
+      th, td { font-size: 1rem; padding: 8px 5px; }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="left-panel">
+    <div>
+      <div class="logo">SIMULATE</div>
+      <div class="instructions">
+        <h2>Nearest To The Pin</h2>
+        <p>🏌️ Multiple shots allowed</p>
+        <p>📊 Simulator measured distance</p>
+        <p>💷 £1 per shot</p>
+        <p>🏆 Closest shot wins</p>
+      </div>
+    </div>
+    <div class="prize-box">
+      <h3>Prizes</h3>
+      <p>🥇 £50 Amazon Voucher</p>
+      <p>🥈 £30 Amazon Voucher</p>
+      <p>🥉 £20 Amazon Voucher</p>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="leaderboard-title">Live Leaderboard</div>
+    <table>
+      <thead>
+        <tr>
+          <th class="rank">#</th>
+          <th>Player</th>
+          <th class="distance">Distance (m)</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboard-body">
+        <tr><td colspan="3">Waiting for first entry…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+const TEST_MODE = false; // true = simulated data, false = live Google Sheet
+const API_URL = "https://script.google.com/macros/s/AKfycbxM4Q0GzfSFafMn5JOLvknQPxur6YLpH0fPWZyk-YEV23MB2y2PyA5SuwaWOexLCKLb/exec";
+
+let previousOrder = [];
+
+function generateTestData() {
+  const names = ["Alice","Bob","Charlie","David","Eva","Frank","Grace","Hannah","Ivy","Jack","Kelly","Leo"];
+  return names.map(name => ({
+    name,
+    bestDistance: +(Math.random()*50+10).toFixed(2)
+  })).sort((a,b)=>a.bestDistance-b.bestDistance).slice(0,10); // Limit top 10
+}
+
+async function fetchLeaderboard() {
+  let data;
+  if(TEST_MODE){
+    data = generateTestData();
+  } else {
+    try {
+      const response = await fetch(API_URL);
+      data = await response.json();
+      data = data.sort((a,b)=>a.bestDistance-b.bestDistance).slice(0,10);
+    } catch (error) {
+      console.error("Leaderboard fetch failed", error);
+      return;
+    }
+  }
+  renderLeaderboard(data);
+}
+
+function renderLeaderboard(data) {
+  const tbody = document.getElementById("leaderboard-body");
+  const newOrder = data.map(p => p.name);
+
+  tbody.innerHTML = "";
+
+  if(!data || data.length===0){
+    tbody.innerHTML = `<tr><td colspan="3">Waiting for first entry…</td></tr>`;
+    return;
+  }
+
+  data.forEach((player,index)=>{
+    const row = document.createElement("tr");
+
+    if(index===0) row.classList.add("gold");
+    if(index===1) row.classList.add("silver");
+    if(index===2) row.classList.add("bronze");
+
+    if(previousOrder.includes(player.name)){
+      const oldIndex = previousOrder.indexOf(player.name);
+      if(oldIndex !== index) row.classList.add("moved");
+    }
+
+    const medal = index===0 ? "🥇" : index===1 ? "🥈" : index===2 ? "🥉" : index+1;
+    row.innerHTML = `<td class="rank">${medal}</td><td>${player.name}</td><td class="distance">${player.bestDistance.toFixed(2)}</td>`;
+    tbody.appendChild(row);
+  });
+
+  previousOrder = newOrder;
+}
+
+fetchLeaderboard();
+setInterval(fetchLeaderboard, 3000);
+</script>
+
+</body>
+</html>
