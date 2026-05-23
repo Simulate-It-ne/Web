@@ -2,141 +2,271 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Nearest to the Pin Leaderboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <title>Simulate It | Live Leaderboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Live closest-to-the-pin leaderboard for Simulate It golf simulator events in the North East." />
+  <link rel="icon" href="Photos/Logo.png" type="image/png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
-    body { background: #0b0f14; color: #ffffff; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; }
-    .container { display: flex; flex-direction: column; width: 100%; max-width: 1200px; background: #111827; border-radius: 12px; overflow: hidden; box-shadow: 0 0 15px rgba(0,0,0,0.5); transition: all 0.5s ease; }
-    @media(min-width: 768px){ .container { flex-direction: row; } }
+    :root{
+      --bg:#f6f8fb;--surface:#ffffff;--primary:#0f62fe;--text:#0b1724;--muted:#64748b;
+      --container-width:1100px;--base-font-size:17px;--base-line:1.55;--header-h:3.5rem
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+      background:var(--bg);color:var(--text);min-height:100vh;
+      font-size:var(--base-font-size);line-height:var(--base-line);
+      display:flex;flex-direction:column;align-items:center;padding:0 0 1.5rem
+    }
+    a{color:var(--primary);text-decoration:none}
+    a:hover{text-decoration:underline}
 
-    .left-panel { flex: 1; padding: 30px; background: linear-gradient(135deg, #111827, #030712); display: flex; flex-direction: column; justify-content: space-between; }
-    .logo { font-size: 3rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 20px; text-align: center; }
-    .instructions h2 { font-size: 2rem; margin-bottom: 10px; text-align: center; }
-    .instructions p { font-size: 1.2rem; line-height: 1.4; margin-bottom: 8px; color: #d1d5db; text-align: center; }
-    .prize-box { margin-top: 20px; padding: 20px; border: 2px solid #22c55e; border-radius: 12px; text-align: center; }
-    .prize-box h3 { font-size: 1.5rem; margin-bottom: 10px; color: #22c55e; }
-    .prize-box p { font-size: 1.1rem; margin-bottom: 5px; }
+    .site-header{
+      position:sticky;top:0;z-index:1000;width:100%;background:var(--surface);
+      box-shadow:0 2px 8px rgba(11,23,36,0.08)
+    }
+    .header-inner{
+      width:min(var(--container-width),calc(100% - 2rem));margin:0 auto;
+      display:flex;align-items:center;justify-content:space-between;gap:1rem;
+      padding:.75rem 0;min-height:var(--header-h)
+    }
+    .brand{display:inline-flex;align-items:center;gap:.75rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text);text-decoration:none}
+    .brand:hover{text-decoration:none}
+    .brand-logo{width:40px;height:40px;object-fit:contain}
+    .nav-toggle{
+      display:none;align-items:center;justify-content:center;width:44px;height:44px;
+      border:1px solid rgba(11,23,36,0.1);border-radius:8px;background:var(--surface);cursor:pointer;padding:0
+    }
+    .nav-toggle span,.nav-toggle span::before,.nav-toggle span::after{
+      display:block;width:20px;height:2px;background:var(--text);position:relative
+    }
+    .nav-toggle span::before,.nav-toggle span::after{content:"";position:absolute;left:0}
+    .nav-toggle span::before{top:-6px}
+    .nav-toggle span::after{top:6px}
+    body.nav-open .nav-toggle span{background:transparent}
+    body.nav-open .nav-toggle span::before{transform:translateY(6px) rotate(45deg)}
+    body.nav-open .nav-toggle span::after{transform:translateY(-6px) rotate(-45deg)}
+    .main-nav ul{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:.25rem;flex-wrap:wrap}
+    .main-nav a{
+      display:inline-flex;align-items:center;min-height:44px;padding:0 .75rem;
+      border-radius:8px;color:var(--text);font-weight:600;font-size:.95rem
+    }
+    .main-nav a:hover{background:rgba(15,98,254,0.06);text-decoration:none;color:var(--primary)}
+    .main-nav .nav-active{color:var(--primary);font-weight:700}
+    .main-nav .nav-cta{
+      background:var(--primary);color:#fff!important;margin-left:.25rem;
+      padding:0 1rem;border-radius:999px
+    }
+    .main-nav .nav-cta:hover{background:#0b4fd4;text-decoration:none}
 
-    .right-panel { flex: 1; padding: 20px; background: #020617; overflow-x: auto; }
-    .leaderboard-title { font-size: 2rem; margin-bottom: 20px; border-bottom: 3px solid #3b82f6; padding-bottom: 10px; text-align: center; }
-    table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; font-size: 1rem; color: #9ca3af; padding-bottom: 10px; }
-    td { padding: 12px 5px; font-size: 1.2rem; border-bottom: 1px solid #1f2933; transition: all 0.5s ease; }
-    .rank { width: 50px; }
-    .distance { text-align: right; font-weight: bold; }
+    .page-wrap{width:min(var(--container-width),calc(100% - 2rem));margin:1rem auto 0;flex:1}
+    .container{
+      display:flex;flex-direction:column;width:100%;background:var(--surface);
+      border-radius:12px;overflow:hidden;box-shadow:0 6px 24px rgba(17,24,39,.06)
+    }
+    @media(min-width:768px){.container{flex-direction:row}}
 
-    tr.gold td { color: #facc15; font-weight: bold; }
-    tr.silver td { color: #e5e7eb; font-weight: bold; }
-    tr.bronze td { color: #f97316; font-weight: bold; }
+    .left-panel{flex:1;padding:1.5rem;display:flex;flex-direction:column;justify-content:space-between;gap:1rem}
+    .logo{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;text-align:center;color:var(--text)}
+    .instructions h2{font-size:1.35rem;text-align:center;margin:.35rem 0;color:var(--text)}
+    .instructions p{color:var(--muted);text-align:center;margin:.25rem 0}
+    .prize-box{
+      padding:1rem;border-radius:10px;border:1px solid rgba(11,23,36,0.06);
+      text-align:center;background:linear-gradient(180deg,#fff,#fbfdff)
+    }
+    .prize-box h3{margin-bottom:.35rem}
 
-    /* SLIDE IN ANIMATION */
-    tr.moved { animation: slideUp 0.6s ease forwards; }
-    @keyframes slideUp {
-      0% { transform: translateY(20px); opacity: 0; }
-      100% { transform: translateY(0); opacity: 1; }
+    .right-panel{flex:1;padding:1.25rem;overflow:auto}
+    .leaderboard-title{
+      font-size:clamp(1.2rem,2.5vw,1.5rem);margin-bottom:.75rem;
+      border-bottom:2px solid rgba(11,23,36,0.06);padding-bottom:.5rem;text-align:center
+    }
+    table{width:100%;border-collapse:collapse}
+    th{font-size:.95rem;color:var(--muted);text-align:left;padding:.75rem .5rem;border-bottom:1px solid rgba(11,23,36,0.06)}
+    td{padding:.75rem .5rem;border-bottom:1px solid rgba(11,23,36,0.04);font-size:1.05rem}
+    .rank{width:4rem;font-weight:700;color:var(--primary)}
+    .distance{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+
+    tr.gold td{color:#b8860b;font-weight:700}
+    tr.silver td{color:#64748b;font-weight:700}
+    tr.bronze td{color:#d97706;font-weight:700}
+
+    tr.moved{animation:slideUp .6s ease forwards}
+    @keyframes slideUp{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+    .live-note{
+      text-align:center;color:var(--muted);font-size:.85rem;margin-top:1rem;padding:0 1rem
     }
 
-    @media(max-width: 480px){
-      .logo { font-size: 2rem; }
-      .instructions h2 { font-size: 1.5rem; }
-      .instructions p, .prize-box p { font-size: 1rem; }
-      th, td { font-size: 1rem; padding: 8px 5px; }
+    @media (prefers-reduced-motion: reduce){
+      tr.moved{animation:none}
+      body.nav-open .nav-toggle span::before,
+      body.nav-open .nav-toggle span::after{transition:none}
+    }
+
+    @media(min-width:1200px){
+      td{font-size:1.2rem;padding:1rem .65rem}
+      th{font-size:1.05rem}
+      .leaderboard-title{font-size:1.75rem}
+      .distance{font-size:1.35rem}
+      .rank{width:5rem;font-size:1.15rem}
+    }
+
+    @media(max-width:768px){
+      .nav-toggle{display:inline-flex}
+      .main-nav{
+        position:fixed;top:var(--header-h);left:0;right:0;background:var(--surface);
+        box-shadow:0 8px 24px rgba(11,23,36,0.1);padding:1rem;
+        transform:translateY(-120%);opacity:0;pointer-events:none;
+        transition:transform .25s ease,opacity .25s ease
+      }
+      body.nav-open .main-nav{transform:translateY(0);opacity:1;pointer-events:auto}
+      body.nav-open{overflow:hidden}
+      .main-nav ul{flex-direction:column;align-items:stretch}
+      .main-nav a{width:100%;justify-content:flex-start;padding:0 1rem}
+      .main-nav .nav-cta{margin-left:0;margin-top:.5rem;justify-content:center}
+      .left-panel{padding:1rem}
+      .right-panel{padding:.75rem}
+    }
+
+    @media(max-width:640px){
+      body{font-size:16px}
+      .logo{font-size:1.5rem}
+      td{font-size:.98rem}
+      .rank{width:3.25rem}
     }
   </style>
 </head>
-
 <body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html">
+        <img src="Photos/Logo.png" alt="" class="brand-logo" width="40" height="40">
+        Simulate It
+      </a>
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">
+        <span></span>
+      </button>
+      <nav class="main-nav" id="main-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html#home">Home</a></li>
+          <li><a href="index.html#services">Hire</a></li>
+          <li><a href="index.html#equipment">Equipment</a></li>
+          <li><a href="index.html#contact">Contact</a></li>
+          <li><a class="nav-active" href="Leaderboard.html" aria-current="page">Live Leaderboard</a></li>
+          <li><a class="nav-cta" href="index.html#contact">Get a Quote</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
 
-<div class="container">
+  <div class="page-wrap">
+    <div class="container">
+      <div class="left-panel">
+        <div>
+          <div class="logo">SIMULATE IT</div>
+          <div class="instructions">
+            <h2>Nearest To The Pin</h2>
+            <p>🏌️ Multiple shots allowed</p>
+            <p>💷 £1 per shot</p>
+            <p>🏆 Closest shot wins</p>
+          </div>
+        </div>
+        <div class="prize-box">
+          <h3>Prizes</h3>
+          <p>🥇 £50 Amazon Voucher</p>
+          <p>🥈 £30 Amazon Voucher</p>
+          <p>🥉 £20 Amazon Voucher</p>
+        </div>
+      </div>
 
-  <div class="left-panel">
-    <div>
-      <div class="logo">SIMULATE</div>
-      <div class="instructions">
-        <h2>Nearest To The Pin</h2>
-        <p>🏌️ Multiple shots allowed</p>
-        <p>💷 £1 per shot</p>
-        <p>🏆 Closest shot wins</p>
+      <div class="right-panel">
+        <div class="leaderboard-title">Live Leaderboard</div>
+        <table>
+          <thead>
+            <tr>
+              <th class="rank">#</th>
+              <th>Player</th>
+              <th class="distance">Distance (m)</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body">
+            <tr><td colspan="3">Waiting for first entry…</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
-    <div class="prize-box">
-      <h3>Prizes</h3>
-      <p>🥇 £50 Amazon Voucher</p>
-      <p>🥈 £30 Amazon Voucher</p>
-      <p>🥉 £20 Amazon Voucher</p>
-    </div>
+    <p class="live-note">Scores update live from the event sheet every few seconds.</p>
   </div>
 
-  <div class="right-panel">
-    <div class="leaderboard-title">Live Leaderboard</div>
-    <table>
-      <thead>
-        <tr>
-          <th class="rank">#</th>
-          <th>Player</th>
-          <th class="distance">Distance (m)</th>
-        </tr>
-      </thead>
-      <tbody id="leaderboard-body">
-        <tr><td colspan="3">Waiting for first entry…</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <script>
+    (function(){
+      var toggle = document.getElementById('nav-toggle');
+      var nav = document.getElementById('main-nav');
+      function closeNav(){
+        document.body.classList.remove('nav-open');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', 'Open menu');
+      }
+      toggle.addEventListener('click', function(){
+        var open = document.body.classList.toggle('nav-open');
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      });
+      nav.querySelectorAll('a').forEach(function(link){ link.addEventListener('click', closeNav); });
+      document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeNav(); });
+    })();
 
-</div>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxM4Q0GzfSFafMn5JOLvknQPxur6YLpH0fPWZyk-YEV23MB2y2PyA5SuwaWOexLCKLb/exec";
 
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxM4Q0GzfSFafMn5JOLvknQPxur6YLpH0fPWZyk-YEV23MB2y2PyA5SuwaWOexLCKLb/exec";
+    let previousOrder = [];
 
-let previousOrder = [];
-
-async function fetchLeaderboard() {
-  try {
-    const response = await fetch(API_URL);
-    const data = await response.json();
-    const sorted = data.sort((a,b)=>a.bestDistance-b.bestDistance).slice(0,10);
-    renderLeaderboard(sorted);
-  } catch (error) {
-    console.error("Leaderboard fetch failed", error);
-  }
-}
-
-function renderLeaderboard(data) {
-  const tbody = document.getElementById("leaderboard-body");
-  const newOrder = data.map(p => p.name);
-
-  tbody.innerHTML = "";
-
-  if(!data || data.length===0){
-    tbody.innerHTML = `<tr><td colspan="3">Waiting for first entry…</td></tr>`;
-    return;
-  }
-
-  data.forEach((player,index)=>{
-    const row = document.createElement("tr");
-
-    if(index===0) row.classList.add("gold");
-    if(index===1) row.classList.add("silver");
-    if(index===2) row.classList.add("bronze");
-
-    if(previousOrder.includes(player.name)){
-      const oldIndex = previousOrder.indexOf(player.name);
-      if(oldIndex !== index) row.classList.add("moved");
+    async function fetchLeaderboard() {
+      try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        const sorted = data.sort((a,b)=>a.bestDistance-b.bestDistance).slice(0,10);
+        renderLeaderboard(sorted);
+      } catch (error) {
+        console.error("Leaderboard fetch failed", error);
+      }
     }
 
-    const medal = index===0 ? "🥇" : index===1 ? "🥈" : index===2 ? "🥉" : index+1;
-    row.innerHTML = `<td class="rank">${medal}</td><td>${player.name}</td><td class="distance">${player.bestDistance.toFixed(2)}</td>`;
-    tbody.appendChild(row);
-  });
+    function renderLeaderboard(data) {
+      const tbody = document.getElementById("leaderboard-body");
+      const newOrder = data.map(p => p.name);
 
-  previousOrder = newOrder;
-}
+      tbody.innerHTML = "";
 
-fetchLeaderboard();
-setInterval(fetchLeaderboard, 3000);
-</script>
+      if(!data || data.length===0){
+        tbody.innerHTML = `<tr><td colspan="3">Waiting for first entry…</td></tr>`;
+        return;
+      }
 
+      data.forEach((player,index)=>{
+        const row = document.createElement("tr");
+
+        if(index===0) row.classList.add("gold");
+        if(index===1) row.classList.add("silver");
+        if(index===2) row.classList.add("bronze");
+
+        if(previousOrder.includes(player.name)){
+          const oldIndex = previousOrder.indexOf(player.name);
+          if(oldIndex !== index) row.classList.add("moved");
+        }
+
+        const medal = index===0 ? "🥇" : index===1 ? "🥈" : index===2 ? "🥉" : index+1;
+        row.innerHTML = `<td class="rank">${medal}</td><td>${player.name}</td><td class="distance">${player.bestDistance.toFixed(2)}</td>`;
+        tbody.appendChild(row);
+      });
+
+      previousOrder = newOrder;
+    }
+
+    fetchLeaderboard();
+    setInterval(fetchLeaderboard, 3000);
+  </script>
 </body>
 </html>
