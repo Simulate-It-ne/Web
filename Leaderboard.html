@@ -7,37 +7,62 @@
   <meta name="description" content="Live closest-to-the-pin leaderboard for Simulate It golf simulator events in the North East." />
   <link rel="icon" href="Photos/Logo.png" type="image/png" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script>try{var t=localStorage.getItem('simulate-it-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
   <style>
     :root{
       --bg:#f6f8fb;--surface:#ffffff;--primary:#0f62fe;--text:#0b1724;--muted:#64748b;
-      --container-width:1100px;--base-font-size:17px;--base-line:1.55;--header-h:3.5rem
+      --border:rgba(11,23,36,0.08);--shadow:0 6px 24px rgba(17,24,39,0.06);
+      --container-width:1280px;--base-font-size:17px;--base-line:1.55;--header-h:3.5rem;
+      --gold:#b8860b;--silver:#64748b;--bronze:#d97706;--prize-bg:linear-gradient(180deg,#fff,#fbfdff);
+      color-scheme:light
+    }
+    [data-theme="dark"]{
+      --bg:#0c1118;--surface:#151d2b;--primary:#4d9aff;--text:#e8eef6;--muted:#94a3b8;
+      --border:rgba(255,255,255,0.08);--shadow:0 8px 28px rgba(0,0,0,0.4);
+      --gold:#f0c14b;--silver:#94a3b8;--bronze:#f59e0b;--prize-bg:linear-gradient(180deg,#1a2438,#151d2b);
+      color-scheme:dark
     }
     *{box-sizing:border-box;margin:0;padding:0}
-    html{scroll-behavior:smooth}
     body{
       font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
       background:var(--bg);color:var(--text);min-height:100vh;
       font-size:var(--base-font-size);line-height:var(--base-line);
-      display:flex;flex-direction:column;align-items:center;padding:0 0 1.5rem
+      display:flex;flex-direction:column;align-items:center;padding:0 0 1.25rem
     }
     a{color:var(--primary);text-decoration:none}
     a:hover{text-decoration:underline}
 
     .site-header{
       position:sticky;top:0;z-index:1000;width:100%;background:var(--surface);
-      box-shadow:0 2px 8px rgba(11,23,36,0.08)
+      box-shadow:0 2px 8px var(--border)
     }
+    body.tv-mode .site-header{display:none}
+    body.tv-mode .live-note{display:none}
+    body.tv-mode .fetch-error:not(.visible){display:none}
+    body.tv-mode .page-wrap{margin-top:.5rem;max-width:100%;width:calc(100% - 1rem)}
+    body.tv-mode .event-header{margin-bottom:.75rem}
+
     .header-inner{
       width:min(var(--container-width),calc(100% - 2rem));margin:0 auto;
       display:flex;align-items:center;justify-content:space-between;gap:1rem;
-      padding:.75rem 0;min-height:var(--header-h)
+      padding:.75rem 0;min-height:var(--header-h);flex-wrap:wrap
     }
+    .header-end{display:flex;align-items:center;gap:.35rem;margin-left:auto}
     .brand{display:inline-flex;align-items:center;gap:.75rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text);text-decoration:none}
     .brand:hover{text-decoration:none}
     .brand-logo{width:40px;height:40px;object-fit:contain}
+    .header-actions{display:flex;align-items:center;gap:.35rem}
+    .icon-btn{
+      display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;
+      padding:0 .65rem;border:1px solid var(--border);border-radius:8px;background:var(--surface);
+      color:var(--text);font-size:1.1rem;cursor:pointer;line-height:1
+    }
+    .icon-btn:hover{background:rgba(15,98,254,0.08)}
+    .icon-btn[aria-pressed="true"]{background:var(--primary);color:#fff;border-color:var(--primary)}
+
     .nav-toggle{
       display:none;align-items:center;justify-content:center;width:44px;height:44px;
-      border:1px solid rgba(11,23,36,0.1);border-radius:8px;background:var(--surface);cursor:pointer;padding:0
+      border:1px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;padding:0
     }
     .nav-toggle span,.nav-toggle span::before,.nav-toggle span::after{
       display:block;width:20px;height:2px;background:var(--text);position:relative
@@ -55,63 +80,118 @@
     }
     .main-nav a:hover{background:rgba(15,98,254,0.06);text-decoration:none;color:var(--primary)}
     .main-nav .nav-active{color:var(--primary);font-weight:700}
-    .main-nav .nav-cta{
-      background:var(--primary);color:#fff!important;margin-left:.25rem;
-      padding:0 1rem;border-radius:999px
-    }
+    .main-nav .nav-cta{background:var(--primary);color:#fff!important;margin-left:.25rem;padding:0 1rem;border-radius:999px}
     .main-nav .nav-cta:hover{background:#0b4fd4;text-decoration:none}
 
     .page-wrap{width:min(var(--container-width),calc(100% - 2rem));margin:1rem auto 0;flex:1}
-    .container{
-      display:flex;flex-direction:column;width:100%;background:var(--surface);
-      border-radius:12px;overflow:hidden;box-shadow:0 6px 24px rgba(17,24,39,.06)
-    }
-    @media(min-width:768px){.container{flex-direction:row}}
 
-    .left-panel{flex:1;padding:1.5rem;display:flex;flex-direction:column;justify-content:space-between;gap:1rem}
-    .logo{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;text-align:center;color:var(--text)}
-    .instructions h2{font-size:1.35rem;text-align:center;margin:.35rem 0;color:var(--text)}
-    .instructions p{color:var(--muted);text-align:center;margin:.25rem 0}
+    .event-header{
+      background:var(--surface);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1rem;
+      box-shadow:var(--shadow);text-align:center
+    }
+    .event-header .brand-line{font-size:.85rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--primary);margin-bottom:.35rem}
+    .event-header h1{font-size:clamp(1.35rem,3vw,2rem);line-height:1.2;margin-bottom:.35rem}
+    .event-header .hole-meta{color:var(--muted);font-size:clamp(1rem,2vw,1.2rem);font-weight:600}
+    .event-header .hole-length{font-size:.95rem;color:var(--muted);margin-top:.25rem;font-weight:500}
+
+    .container{display:grid;grid-template-columns:1fr;gap:1rem;width:100%}
+    @media(min-width:900px){
+      .container{grid-template-columns:minmax(300px,0.95fr) minmax(340px,1.05fr)}
+      .leaderboard-panel{grid-column:2;grid-row:1/span 2}
+      .flyover-panel{grid-row:1}
+      .side-panel{grid-row:2}
+    }
+
+    .flyover-panel,.side-panel,.leaderboard-panel{
+      background:var(--surface);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)
+    }
+
+    .flyover-panel{display:flex;flex-direction:column}
+    .flyover-wrap{position:relative;background:#0b1724;aspect-ratio:16/9;min-height:180px}
+    .flyover-wrap video{width:100%;height:100%;object-fit:cover;display:block}
+    .flyover-label{
+      position:absolute;bottom:0;left:0;right:0;padding:.5rem .75rem;
+      background:linear-gradient(transparent,rgba(11,23,36,0.75));
+      color:#fff;font-size:.85rem;font-weight:600
+    }
+    .flyover-fallback{
+      display:none;align-items:center;justify-content:center;height:100%;color:#94a3b8;
+      font-size:.9rem;padding:1rem;text-align:center
+    }
+    .flyover-wrap.no-video .flyover-fallback{display:flex}
+    .flyover-wrap.no-video video{display:none}
+
+    .side-panel{padding:1.25rem;display:flex;flex-direction:column;gap:1rem}
+    #rules-heading{font-size:1.15rem;text-align:center}
+    .rules{color:var(--muted);text-align:center;font-size:.95rem}
+    .rules p{margin:.2rem 0}
+
     .prize-box{
-      padding:1rem;border-radius:10px;border:1px solid rgba(11,23,36,0.06);
-      text-align:center;background:linear-gradient(180deg,#fff,#fbfdff)
+      padding:1rem;border-radius:10px;border:1px solid var(--border);
+      background:var(--prize-bg)
     }
-    .prize-box h3{margin-bottom:.35rem}
+    .prize-box h3{font-size:1rem;margin-bottom:.5rem;text-align:center}
+    #prize-list p{margin:.35rem 0;font-size:.95rem;text-align:center}
+    #prize-list p.empty{color:var(--muted);font-style:italic}
 
-    .right-panel{flex:1;padding:1.25rem;overflow:auto}
+    .leaderboard-panel{padding:1.25rem;display:flex;flex-direction:column}
     .leaderboard-title{
-      font-size:clamp(1.2rem,2.5vw,1.5rem);margin-bottom:.75rem;
-      border-bottom:2px solid rgba(11,23,36,0.06);padding-bottom:.5rem;text-align:center
+      font-size:clamp(1.15rem,2.5vw,1.5rem);margin-bottom:.75rem;
+      border-bottom:2px solid var(--border);padding-bottom:.5rem;text-align:center;flex-shrink:0
     }
-    table{width:100%;border-collapse:collapse}
-    th{font-size:.95rem;color:var(--muted);text-align:left;padding:.75rem .5rem;border-bottom:1px solid rgba(11,23,36,0.06)}
-    td{padding:.75rem .5rem;border-bottom:1px solid rgba(11,23,36,0.04);font-size:1.05rem}
-    .rank{width:4rem;font-weight:700;color:var(--primary)}
-    .distance{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
 
-    tr.gold td{color:#b8860b;font-weight:700}
-    tr.silver td{color:#64748b;font-weight:700}
-    tr.bronze td{color:#d97706;font-weight:700}
-
-    tr.moved{animation:slideUp .6s ease forwards}
-    @keyframes slideUp{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
-
-    .live-note{
-      text-align:center;color:var(--muted);font-size:.85rem;margin-top:1rem;padding:0 1rem
+    .leaderboard-stack{
+      display:flex;flex-direction:column;align-items:stretch;width:100%;
+      flex:0 0 auto;align-content:flex-start
     }
+    .lb-row{
+      display:grid;grid-template-columns:3.5rem 1fr auto;gap:.5rem;align-items:center;
+      padding:.75rem .5rem;border-bottom:1px solid var(--border);font-size:1.05rem
+    }
+    .lb-row:last-child{border-bottom:none}
+    .lb-rank{font-weight:700;color:var(--primary)}
+    .lb-name{font-weight:600}
+    .lb-distance{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+    .lb-row.gold .lb-rank,.lb-row.gold .lb-name,.lb-row.gold .lb-distance{color:var(--gold)}
+    .lb-row.silver .lb-rank,.lb-row.silver .lb-name,.lb-row.silver .lb-distance{color:var(--silver)}
+    .lb-row.bronze .lb-rank,.lb-row.bronze .lb-name,.lb-row.bronze .lb-distance{color:var(--bronze)}
+    .lb-row.leader{padding-top:0;padding-bottom:.85rem}
+    .lb-row.leader .lb-name{font-size:1.15em}
+    .lb-row.leader .lb-distance{font-size:1.1em}
+    .lb-row.moved{animation:slideUp .5s ease forwards}
+    .lb-row.new-leader{animation:goldPulse 1.4s ease}
+    @keyframes slideUp{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+    @keyframes goldPulse{
+      0%{background:transparent;box-shadow:none}
+      20%{background:rgba(255,215,0,0.22);box-shadow:0 0 24px rgba(255,200,0,0.45)}
+      50%{background:rgba(255,215,0,0.12);box-shadow:0 0 12px rgba(255,200,0,0.25)}
+      100%{background:transparent;box-shadow:none}
+    }
+
+    .lb-empty{padding:1rem;text-align:center;color:var(--muted)}
+
+    .live-note{text-align:center;color:var(--muted);font-size:.85rem;margin-top:1rem}
+    .fetch-error{
+      display:none;margin-top:.75rem;padding:.65rem 1rem;border-radius:8px;
+      background:#fef2f2;color:#b91c1c;font-size:.9rem;text-align:center
+    }
+    [data-theme="dark"] .fetch-error{background:#3f1515;color:#fca5a5}
+    .fetch-error.visible{display:block}
 
     @media (prefers-reduced-motion: reduce){
-      tr.moved{animation:none}
-      body.nav-open .nav-toggle span::before,
-      body.nav-open .nav-toggle span::after{transition:none}
+      .lb-row.moved,.lb-row.new-leader{animation:none}
     }
 
     @media(min-width:1200px){
-      td{font-size:1.2rem;padding:1rem .65rem}
-      th{font-size:1.05rem}
+      .event-header h1{font-size:2.25rem}
+      .lb-row{font-size:1.2rem;padding:1rem .65rem}
       .leaderboard-title{font-size:1.75rem}
-      .distance{font-size:1.35rem}
-      .rank{width:5rem;font-size:1.15rem}
+      .lb-row.leader .lb-distance{font-size:1.35rem}
+      .lb-row.leader .lb-name{font-size:1.25rem}
+      .flyover-wrap{min-height:220px}
+      #prize-list p{font-size:1.05rem}
+      body.tv-mode .lb-row{font-size:1.35rem}
+      body.tv-mode .event-header h1{font-size:2.5rem}
     }
 
     @media(max-width:768px){
@@ -127,15 +207,6 @@
       .main-nav ul{flex-direction:column;align-items:stretch}
       .main-nav a{width:100%;justify-content:flex-start;padding:0 1rem}
       .main-nav .nav-cta{margin-left:0;margin-top:.5rem;justify-content:center}
-      .left-panel{padding:1rem}
-      .right-panel{padding:.75rem}
-    }
-
-    @media(max-width:640px){
-      body{font-size:16px}
-      .logo{font-size:1.5rem}
-      td{font-size:.98rem}
-      .rank{width:3.25rem}
     }
   </style>
 </head>
@@ -146,10 +217,13 @@
         <img src="Photos/Logo.png" alt="" class="brand-logo" width="40" height="40">
         Simulate It
       </a>
-      <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">
-        <span></span>
-      </button>
-      <nav class="main-nav" id="main-nav" aria-label="Main">
+      <div class="header-end">
+        <button type="button" class="icon-btn" data-theme-toggle aria-label="Switch to dark mode" title="Dark mode">🌙</button>
+        <button type="button" class="icon-btn" data-tv-toggle aria-pressed="false" aria-label="TV fullscreen mode" title="TV mode">📺</button>
+        <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">
+          <span></span>
+        </button>
+        <nav class="main-nav" id="main-nav" aria-label="Main">
         <ul>
           <li><a href="index.html#home">Home</a></li>
           <li><a href="index.html#services">Hire</a></li>
@@ -158,49 +232,56 @@
           <li><a class="nav-active" href="Leaderboard.html" aria-current="page">Live Leaderboard</a></li>
           <li><a class="nav-cta" href="index.html#contact">Get a Quote</a></li>
         </ul>
-      </nav>
+        </nav>
+      </div>
     </div>
   </header>
 
   <div class="page-wrap">
+    <header class="event-header">
+      <p class="brand-line">Simulate It</p>
+      <h1 id="competition-name">Loading event…</h1>
+      <p class="hole-meta" id="hole-name"></p>
+      <p class="hole-length" id="hole-length" hidden></p>
+    </header>
+
     <div class="container">
-      <div class="left-panel">
+      <section class="flyover-panel" aria-label="Hole flyover">
+        <div class="flyover-wrap" id="flyover-wrap">
+          <video id="flyover-video" muted loop playsinline autoplay aria-label="Hole flyover video"></video>
+          <p class="flyover-fallback" id="flyover-fallback">Flyover video unavailable</p>
+          <p class="flyover-label" id="flyover-label">Hole flyover</p>
+        </div>
+      </section>
+
+      <aside class="side-panel">
         <div>
-          <div class="logo">SIMULATE IT</div>
-          <div class="instructions">
-            <h2>Nearest To The Pin</h2>
-            <p>🏌️ Multiple shots allowed</p>
-            <p>💷 £1 per shot</p>
-            <p>🏆 Closest shot wins</p>
+          <h2 id="rules-heading">Nearest To The Pin</h2>
+          <div class="rules" id="rules-list">
+            <p class="empty">Loading rules…</p>
           </div>
         </div>
         <div class="prize-box">
           <h3>Prizes</h3>
-          <p>🥇 £50 Amazon Voucher</p>
-          <p>🥈 £30 Amazon Voucher</p>
-          <p>🥉 £20 Amazon Voucher</p>
+          <div id="prize-list">
+            <p class="empty">Loading prizes…</p>
+          </div>
         </div>
-      </div>
+      </aside>
 
-      <div class="right-panel">
-        <div class="leaderboard-title">Live Leaderboard</div>
-        <table>
-          <thead>
-            <tr>
-              <th class="rank">#</th>
-              <th>Player</th>
-              <th class="distance">Distance (m)</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboard-body">
-            <tr><td colspan="3">Waiting for first entry…</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <section class="leaderboard-panel">
+        <h2 class="leaderboard-title">Live Leaderboard</h2>
+        <div class="leaderboard-stack" id="leaderboard-body" role="list" aria-label="Leaderboard rankings">
+          <p class="lb-empty">Waiting for first entry…</p>
+        </div>
+      </section>
     </div>
-    <p class="live-note">Scores update live from the event sheet every few seconds.</p>
+
+    <p class="live-note">Scores and event details update live from the Google Sheet every few seconds.</p>
+    <p class="fetch-error" id="fetch-error" role="alert">Unable to load live data. Check your connection and try again.</p>
   </div>
 
+  <script src="theme.js"></script>
   <script>
     (function(){
       var toggle = document.getElementById('nav-toggle');
@@ -216,57 +297,195 @@
         toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
       });
       nav.querySelectorAll('a').forEach(function(link){ link.addEventListener('click', closeNav); });
-      document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeNav(); });
+      document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape'){
+          closeNav();
+          if(document.body.classList.contains('tv-mode')){
+            document.body.classList.remove('tv-mode');
+            document.querySelector('[data-tv-toggle]').setAttribute('aria-pressed', 'false');
+            if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+          }
+        }
+      });
     })();
 
-    const API_URL = "https://script.google.com/macros/s/AKfycbxM4Q0GzfSFafMn5JOLvknQPxur6YLpH0fPWZyk-YEV23MB2y2PyA5SuwaWOexLCKLb/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbxdvuGY5SikEjbv_L4jBMmg3AZcWw2BExwOd76EAutpXxOpnCBH0dkJReNZmBbhFqD1/exec";
+
+    const FLYOVER_BASE = "Photos/Flyover/";
+    const MEDALS = ["🥇", "🥈", "🥉"];
 
     let previousOrder = [];
+    let previousLeader = null;
+    let lastFlyoverKey = "";
 
-    async function fetchLeaderboard() {
-      try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
-        const sorted = data.sort((a,b)=>a.bestDistance-b.bestDistance).slice(0,10);
-        renderLeaderboard(sorted);
-      } catch (error) {
-        console.error("Leaderboard fetch failed", error);
-      }
+    const els = {
+      competition: document.getElementById("competition-name"),
+      holeName: document.getElementById("hole-name"),
+      holeLength: document.getElementById("hole-length"),
+      rulesHeading: document.getElementById("rules-heading"),
+      rulesList: document.getElementById("rules-list"),
+      prizeList: document.getElementById("prize-list"),
+      flyoverVideo: document.getElementById("flyover-video"),
+      flyoverWrap: document.getElementById("flyover-wrap"),
+      flyoverLabel: document.getElementById("flyover-label"),
+      fetchError: document.getElementById("fetch-error")
+    };
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text == null ? "" : String(text);
+      return div.innerHTML;
     }
 
-    function renderLeaderboard(data) {
-      const tbody = document.getElementById("leaderboard-body");
-      const newOrder = data.map(p => p.name);
+    function flyoverPath(key) {
+      if (!key || !String(key).trim()) return "";
+      return FLYOVER_BASE + encodeURIComponent(String(key).trim()) + ".mp4";
+    }
 
-      tbody.innerHTML = "";
+    function renderRules(rules) {
+      const items = (rules || []).map(function(r) { return String(r).trim(); }).filter(Boolean);
+      if (!items.length) {
+        els.rulesHeading.textContent = "Nearest To The Pin";
+        els.rulesList.innerHTML = '<p class="empty">Rules will appear here</p>';
+        return;
+      }
+      els.rulesHeading.textContent = items[0];
+      if (items.length === 1) {
+        els.rulesList.innerHTML = "";
+        return;
+      }
+      els.rulesList.innerHTML = items.slice(1).map(function(line) {
+        return "<p>" + escapeHtml(line) + "</p>";
+      }).join("");
+    }
 
-      if(!data || data.length===0){
-        tbody.innerHTML = `<tr><td colspan="3">Waiting for first entry…</td></tr>`;
+    function renderEvent(data) {
+      els.competition.textContent = data.competitionName || "Live Event";
+      els.holeName.textContent = data.holeName ? data.holeName : "";
+      els.holeName.hidden = !data.holeName;
+
+      if (data.holeLength) {
+        els.holeLength.textContent = "Hole length: " + data.holeLength;
+        els.holeLength.hidden = false;
+      } else {
+        els.holeLength.hidden = true;
+      }
+
+      renderRules(data.rules);
+      renderPrizes(data.prizes || []);
+      renderFlyover(data.flyover, data.holeName);
+    }
+
+    function renderPrizes(prizes) {
+      const filtered = prizes.filter(function(p) {
+        return (p.place && String(p.place).trim()) || (p.prize && String(p.prize).trim());
+      });
+
+      if (!filtered.length) {
+        els.prizeList.innerHTML = '<p class="empty">Prizes to be announced</p>';
         return;
       }
 
-      data.forEach((player,index)=>{
-        const row = document.createElement("tr");
+      els.prizeList.innerHTML = filtered.map(function(p, i) {
+        const medal = i < 3 ? MEDALS[i] + " " : "";
+        const place = p.place ? escapeHtml(p.place) : "Prize " + (i + 1);
+        const prize = p.prize ? escapeHtml(p.prize) : "";
+        return "<p>" + medal + place + (prize ? ": " + prize : "") + "</p>";
+      }).join("");
+    }
 
-        if(index===0) row.classList.add("gold");
-        if(index===1) row.classList.add("silver");
-        if(index===2) row.classList.add("bronze");
+    function renderFlyover(flyoverKey, holeLabel) {
+      const key = flyoverKey ? String(flyoverKey).trim() : "";
+      els.flyoverLabel.textContent = holeLabel
+        ? "Flyover — " + holeLabel
+        : (key ? "Hole flyover" : "Flyover");
 
-        if(previousOrder.includes(player.name)){
+      if (!key) {
+        els.flyoverWrap.classList.add("no-video");
+        els.flyoverVideo.removeAttribute("src");
+        lastFlyoverKey = "";
+        return;
+      }
+
+      if (key === lastFlyoverKey) return;
+      lastFlyoverKey = key;
+
+      const src = flyoverPath(key);
+      els.flyoverWrap.classList.remove("no-video");
+      els.flyoverVideo.src = src;
+      els.flyoverVideo.load();
+      els.flyoverVideo.play().catch(function() {});
+
+      els.flyoverVideo.onerror = function() { els.flyoverWrap.classList.add("no-video"); };
+      els.flyoverVideo.onloadeddata = function() { els.flyoverWrap.classList.remove("no-video"); };
+    }
+
+    function renderLeaderboard(rows) {
+      const stack = document.getElementById("leaderboard-body");
+      const sorted = (rows || [])
+        .slice()
+        .sort(function(a, b) { return a.bestDistance - b.bestDistance; })
+        .slice(0, 10);
+
+      const newOrder = sorted.map(function(p) { return p.name; });
+      const currentLeader = sorted.length ? sorted[0].name : null;
+      const leaderChanged = currentLeader && previousLeader && currentLeader !== previousLeader;
+
+      stack.innerHTML = "";
+
+      if (!sorted.length) {
+        stack.innerHTML = '<p class="lb-empty">Waiting for first entry…</p>';
+        previousOrder = [];
+        previousLeader = null;
+        return;
+      }
+
+      sorted.forEach(function(player, index) {
+        const row = document.createElement("div");
+        row.className = "lb-row";
+        row.setAttribute("role", "listitem");
+
+        if (index === 0) {
+          row.classList.add("gold", "leader");
+          if (leaderChanged) row.classList.add("new-leader");
+        }
+        if (index === 1) row.classList.add("silver");
+        if (index === 2) row.classList.add("bronze");
+
+        if (previousOrder.includes(player.name)) {
           const oldIndex = previousOrder.indexOf(player.name);
-          if(oldIndex !== index) row.classList.add("moved");
+          if (oldIndex !== index) row.classList.add("moved");
         }
 
-        const medal = index===0 ? "🥇" : index===1 ? "🥈" : index===2 ? "🥉" : index+1;
-        row.innerHTML = `<td class="rank">${medal}</td><td>${player.name}</td><td class="distance">${player.bestDistance.toFixed(2)}</td>`;
-        tbody.appendChild(row);
+        const medal = index < 3 ? MEDALS[index] : String(index + 1);
+        row.innerHTML =
+          '<span class="lb-rank">' + medal + '</span>' +
+          '<span class="lb-name">' + escapeHtml(player.name) + '</span>' +
+          '<span class="lb-distance">' + Number(player.bestDistance).toFixed(2) + '</span>';
+        stack.appendChild(row);
       });
 
       previousOrder = newOrder;
+      previousLeader = currentLeader;
     }
 
-    fetchLeaderboard();
-    setInterval(fetchLeaderboard, 3000);
+    async function fetchEventData() {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const data = await response.json();
+
+        renderEvent(data);
+        renderLeaderboard(data.leaderboard);
+        els.fetchError.classList.remove("visible");
+      } catch (error) {
+        console.error("Leaderboard fetch failed", error);
+        els.fetchError.classList.add("visible");
+      }
+    }
+
+    fetchEventData();
+    setInterval(fetchEventData, 3000);
   </script>
 </body>
 </html>
