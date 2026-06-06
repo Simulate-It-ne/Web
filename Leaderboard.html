@@ -468,6 +468,11 @@
     let previousOrder = [];
     let previousLeader = null;
     let lastFlyoverKey = "";
+    let lastLeaderboardSig = "";
+    let lastRulesSig = "";
+    let lastPrizesSig = "";
+    let lastEventSig = "";
+    const rowCache = new Map();
 
     const els = {
       competition: document.getElementById("competition-name"),
@@ -495,6 +500,10 @@
 
     function renderRules(rules) {
       const items = (rules || []).map(function(r) { return String(r).trim(); }).filter(Boolean);
+      const sig = JSON.stringify(items);
+      if (sig === lastRulesSig) return;
+      lastRulesSig = sig;
+
       if (!items.length) {
         els.rulesHeading.textContent = "Nearest To The Pin";
         els.rulesList.innerHTML = '<p class="empty">Rules will appear here</p>';
@@ -511,15 +520,23 @@
     }
 
     function renderEvent(data) {
-      els.competition.textContent = data.competitionName || "Live Event";
-      els.holeName.textContent = data.holeName ? data.holeName : "";
-      els.holeName.hidden = !data.holeName;
+      const eventSig = JSON.stringify({
+        competitionName: data.competitionName || "Live Event",
+        holeName: data.holeName || "",
+        holeLength: data.holeLength || ""
+      });
+      if (eventSig !== lastEventSig) {
+        lastEventSig = eventSig;
+        els.competition.textContent = data.competitionName || "Live Event";
+        els.holeName.textContent = data.holeName ? data.holeName : "";
+        els.holeName.hidden = !data.holeName;
 
-      if (data.holeLength) {
-        els.holeLength.textContent = "Hole length: " + data.holeLength;
-        els.holeLength.hidden = false;
-      } else {
-        els.holeLength.hidden = true;
+        if (data.holeLength) {
+          els.holeLength.textContent = "Hole length: " + data.holeLength;
+          els.holeLength.hidden = false;
+        } else {
+          els.holeLength.hidden = true;
+        }
       }
 
       renderRules(data.rules);
@@ -531,6 +548,9 @@
       const filtered = prizes.filter(function(p) {
         return (p.place && String(p.place).trim()) || (p.prize && String(p.prize).trim());
       });
+      const sig = JSON.stringify(filtered);
+      if (sig === lastPrizesSig) return;
+      lastPrizesSig = sig;
 
       if (!filtered.length) {
         els.prizeList.innerHTML = '<p class="empty">Prizes to be announced</p>';
@@ -571,6 +591,28 @@
       els.flyoverVideo.onloadeddata = function() { els.flyoverWrap.classList.remove("no-video"); };
     }
 
+    function leaderboardSignature(sorted) {
+      return JSON.stringify(sorted.map(function(p) {
+        return { name: p.name, bestDistance: p.bestDistance };
+      }));
+    }
+
+    function applyRowClasses(row, index, leaderChanged, playerName, prevOrder) {
+      row.className = "lb-row";
+      if (index === 0) {
+        row.classList.add("gold", "leader");
+        if (leaderChanged) row.classList.add("new-leader");
+      } else if (index === 1) {
+        row.classList.add("silver");
+      } else if (index === 2) {
+        row.classList.add("bronze");
+      }
+      if (prevOrder.includes(playerName)) {
+        var oldIndex = prevOrder.indexOf(playerName);
+        if (oldIndex !== index) row.classList.add("moved");
+      }
+    }
+
     function renderLeaderboard(rows) {
       const stack = document.getElementById("leaderboard-body");
       const sorted = (rows || [])
@@ -578,46 +620,70 @@
         .sort(function(a, b) { return a.bestDistance - b.bestDistance; })
         .slice(0, 10);
 
+      const sig = leaderboardSignature(sorted);
+      if (sig === lastLeaderboardSig) return;
+
       const newOrder = sorted.map(function(p) { return p.name; });
       const currentLeader = sorted.length ? sorted[0].name : null;
       const leaderChanged = currentLeader && previousLeader && currentLeader !== previousLeader;
-
-      stack.innerHTML = "";
+      const layoutMayChange = sorted.length !== previousOrder.length;
 
       if (!sorted.length) {
-        stack.innerHTML = '<p class="lb-empty">Waiting for first entry…</p>';
+        if (!stack.querySelector(".lb-empty")) {
+          stack.innerHTML = '<p class="lb-empty">Waiting for first entry…</p>';
+          rowCache.clear();
+        }
         previousOrder = [];
         previousLeader = null;
+        lastLeaderboardSig = sig;
         return;
       }
 
+      const emptyEl = stack.querySelector(".lb-empty");
+      if (emptyEl) {
+        stack.innerHTML = "";
+        rowCache.clear();
+      }
+
+      const usedNames = new Set();
+
       sorted.forEach(function(player, index) {
-        const row = document.createElement("div");
-        row.className = "lb-row";
-        row.setAttribute("role", "listitem");
-
-        if (index === 0) {
-          row.classList.add("gold", "leader");
-          if (leaderChanged) row.classList.add("new-leader");
+        let row = rowCache.get(player.name);
+        if (!row) {
+          row = document.createElement("div");
+          row.setAttribute("role", "listitem");
+          row.innerHTML =
+            '<span class="lb-rank"></span>' +
+            '<span class="lb-name"></span>' +
+            '<span class="lb-distance"></span>';
+          rowCache.set(player.name, row);
         }
-        if (index === 1) row.classList.add("silver");
-        if (index === 2) row.classList.add("bronze");
+        usedNames.add(player.name);
 
-        if (previousOrder.includes(player.name)) {
-          const oldIndex = previousOrder.indexOf(player.name);
-          if (oldIndex !== index) row.classList.add("moved");
-        }
+        applyRowClasses(row, index, leaderChanged, player.name, previousOrder);
 
         const medal = index < 3 ? MEDALS[index] : String(index + 1);
-        row.innerHTML =
-          '<span class="lb-rank">' + medal + '</span>' +
-          '<span class="lb-name">' + escapeHtml(player.name) + '</span>' +
-          '<span class="lb-distance">' + Number(player.bestDistance).toFixed(2) + '</span>';
+        row.querySelector(".lb-rank").textContent = medal;
+        row.querySelector(".lb-name").textContent = player.name;
+        row.querySelector(".lb-distance").textContent = Number(player.bestDistance).toFixed(2);
+
         stack.appendChild(row);
+      });
+
+      rowCache.forEach(function(row, name) {
+        if (!usedNames.has(name)) {
+          row.remove();
+          rowCache.delete(name);
+        }
       });
 
       previousOrder = newOrder;
       previousLeader = currentLeader;
+      lastLeaderboardSig = sig;
+
+      if (document.body.classList.contains("tv-mode") && layoutMayChange) {
+        window.dispatchEvent(new CustomEvent("tv-mode-change", { detail: { active: true } }));
+      }
     }
 
     async function fetchEventData() {
@@ -629,9 +695,6 @@
         renderEvent(data);
         renderLeaderboard(data.leaderboard);
         els.fetchError.classList.remove("visible");
-        if(document.body.classList.contains('tv-mode')){
-          window.dispatchEvent(new CustomEvent('tv-mode-change', { detail: { active: true } }));
-        }
       } catch (error) {
         console.error("Leaderboard fetch failed", error);
         els.fetchError.classList.add("visible");
