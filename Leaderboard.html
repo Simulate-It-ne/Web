@@ -415,12 +415,15 @@
             // no intermediate blank frame that the browser can paint.
             row.style.padding  = Math.max(2, rowH * 0.12) + 'px 0.35rem';
             row.style.fontSize = fontSize + 'px';
-            if(row.classList.contains('leader')){
-              var name = row.querySelector('.lb-name');
-              var dist = row.querySelector('.lb-distance');
-              if(name) name.style.fontSize = (fontSize * 1.08) + 'px';
-              if(dist) dist.style.fontSize = (fontSize * 1.05) + 'px';
-            }
+
+            // Always set child span sizes explicitly on every row so stale
+            // inline values from a previous leader/non-leader state can never
+            // cause individual lines to appear smaller than their neighbours.
+            var isLeader = row.classList.contains('leader');
+            var name = row.querySelector('.lb-name');
+            var dist = row.querySelector('.lb-distance');
+            if(name) name.style.fontSize = isLeader ? (fontSize * 1.08) + 'px' : fontSize + 'px';
+            if(dist) dist.style.fontSize = isLeader ? (fontSize * 1.05) + 'px' : fontSize + 'px';
           });
         }
 
