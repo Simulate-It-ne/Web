@@ -376,70 +376,81 @@
       });
       nav.querySelectorAll('a').forEach(function(link){ link.addEventListener('click', closeNav); });
       document.addEventListener('keydown', function(e){
-        if(e.key === 'Escape'){
-          closeNav();
-        }
+        if(e.key === 'Escape') closeNav();
       });
     })();
 
     (function(){
       var pageWrap = document.querySelector('.page-wrap');
 
-      function fitTvLayout(){
-        if(!document.body.classList.contains('tv-mode') || !pageWrap) return;
+      // ── Debounce helper ──────────────────────────────────────────────────────
+      // Prevents fitTvLayout from firing on every 3-second poll cycle, which
+      // caused the row styles to blank-then-repaint (the flicker). Any rapid
+      // succession of calls is collapsed into a single trailing call.
+      function debounce(fn, delay){
+        var timer;
+        return function(){
+          clearTimeout(timer);
+          timer = setTimeout(fn, delay);
+        };
+      }
 
-        pageWrap.style.transform = '';
-        pageWrap.style.width = '';
-        pageWrap.style.height = '';
+      function fitTvLayoutNow(){
+        if(!document.body.classList.contains('tv-mode') || !pageWrap) return;
 
         var panel = document.querySelector('.leaderboard-panel');
         var stack = document.getElementById('leaderboard-body');
-        var rows = stack ? stack.querySelectorAll('.lb-row') : [];
-
-        rows.forEach(function(row){
-          row.style.fontSize = '';
-          row.style.padding = '';
-        });
+        var rows  = stack ? stack.querySelectorAll('.lb-row') : [];
 
         if(panel && rows.length){
-          var title = panel.querySelector('.leaderboard-title');
-          var titleH = title ? title.offsetHeight : 0;
+          var title     = panel.querySelector('.leaderboard-title');
+          var titleH    = title ? title.offsetHeight : 0;
           var available = panel.clientHeight - titleH - 8;
-          var rowH = Math.floor(available / rows.length);
-          rowH = Math.max(26, Math.min(rowH, 52));
-          var fontSize = Math.min(Math.max(rowH * 0.42, 11), 20);
+          var rowH      = Math.floor(available / rows.length);
+          rowH          = Math.max(26, Math.min(rowH, 52));
+          var fontSize  = Math.min(Math.max(rowH * 0.42, 11), 20);
 
           rows.forEach(function(row){
-            row.style.padding = Math.max(2, rowH * 0.12) + 'px 0.35rem';
+            // Write values directly — no style reset first, so there is
+            // no intermediate blank frame that the browser can paint.
+            row.style.padding  = Math.max(2, rowH * 0.12) + 'px 0.35rem';
             row.style.fontSize = fontSize + 'px';
             if(row.classList.contains('leader')){
-              row.querySelector('.lb-name').style.fontSize = (fontSize * 1.08) + 'px';
-              row.querySelector('.lb-distance').style.fontSize = (fontSize * 1.05) + 'px';
+              var name = row.querySelector('.lb-name');
+              var dist = row.querySelector('.lb-distance');
+              if(name) name.style.fontSize = (fontSize * 1.08) + 'px';
+              if(dist) dist.style.fontSize = (fontSize * 1.05) + 'px';
             }
           });
         }
 
+        // Scale the whole page-wrap only if content overflows the viewport.
         requestAnimationFrame(function(){
-          var vh = window.innerHeight;
-          var vw = window.innerWidth;
-          var sh = pageWrap.scrollHeight;
-          var sw = pageWrap.scrollWidth;
+          var vh    = window.innerHeight;
+          var vw    = window.innerWidth;
+          var sh    = pageWrap.scrollHeight;
+          var sw    = pageWrap.scrollWidth;
           var scale = Math.min(1, (vh - 4) / sh, (vw - 4) / sw);
           if(scale < 0.98){
-            pageWrap.style.transform = 'scale(' + scale + ')';
+            pageWrap.style.transform       = 'scale(' + scale + ')';
             pageWrap.style.transformOrigin = 'top center';
+          } else {
+            pageWrap.style.transform = '';
           }
         });
       }
 
+      // Debounced version used for data-driven triggers (poll every 3 s).
+      // 150 ms is enough for the DOM to settle after a leaderboard re-render
+      // while still feeling instant to a viewer.
+      var fitTvLayout = debounce(fitTvLayoutNow, 150);
+
       function resetTvLayout(){
         if(!pageWrap) return;
         pageWrap.style.transform = '';
-        pageWrap.style.width = '';
-        pageWrap.style.height = '';
         document.querySelectorAll('.lb-row').forEach(function(row){
           row.style.fontSize = '';
-          row.style.padding = '';
+          row.style.padding  = '';
           var name = row.querySelector('.lb-name');
           var dist = row.querySelector('.lb-distance');
           if(name) name.style.fontSize = '';
@@ -449,15 +460,19 @@
 
       window.addEventListener('tv-mode-change', function(e){
         if(e.detail.active){
-          setTimeout(fitTvLayout, 50);
-          setTimeout(fitTvLayout, 200);
+          // Two passes: one soon after DOM settles, one after fonts/layout complete.
+          setTimeout(fitTvLayoutNow, 60);
+          setTimeout(fitTvLayoutNow, 250);
         } else {
           resetTvLayout();
         }
       });
+
+      // Resize / fullscreen transitions use the debounced version — they can
+      // fire dozens of times per second and don't need instant response.
       window.addEventListener('resize', fitTvLayout);
       document.addEventListener('fullscreenchange', function(){ setTimeout(fitTvLayout, 150); });
-      window.addEventListener('load', fitTvLayout);
+      window.addEventListener('load', fitTvLayoutNow);
     })();
 
     const API_URL = "https://script.google.com/macros/s/AKfycbxdvuGY5SikEjbv_L4jBMmg3AZcWw2BExwOd76EAutpXxOpnCBH0dkJReNZmBbhFqD1/exec";
@@ -472,19 +487,22 @@
     let lastRulesSig = "";
     let lastPrizesSig = "";
     let lastEventSig = "";
+    // Track the last rendered row count so we only trigger a TV layout
+    // recalculation when the number of rows actually changes (not on every poll).
+    let lastRowCount = 0;
     const rowCache = new Map();
 
     const els = {
       competition: document.getElementById("competition-name"),
-      holeName: document.getElementById("hole-name"),
-      holeLength: document.getElementById("hole-length"),
-      rulesHeading: document.getElementById("rules-heading"),
-      rulesList: document.getElementById("rules-list"),
-      prizeList: document.getElementById("prize-list"),
-      flyoverVideo: document.getElementById("flyover-video"),
+      holeName:    document.getElementById("hole-name"),
+      holeLength:  document.getElementById("hole-length"),
+      rulesHeading:document.getElementById("rules-heading"),
+      rulesList:   document.getElementById("rules-list"),
+      prizeList:   document.getElementById("prize-list"),
+      flyoverVideo:document.getElementById("flyover-video"),
       flyoverWrap: document.getElementById("flyover-wrap"),
-      flyoverLabel: document.getElementById("flyover-label"),
-      fetchError: document.getElementById("fetch-error")
+      flyoverLabel:document.getElementById("flyover-label"),
+      fetchError:  document.getElementById("fetch-error")
     };
 
     function escapeHtml(text) {
@@ -499,7 +517,7 @@
     }
 
     function renderRules(rules) {
-      const items = (rules || []).map(function(r) { return String(r).trim(); }).filter(Boolean);
+      const items = (rules || []).map(r => String(r).trim()).filter(Boolean);
       const sig = JSON.stringify(items);
       if (sig === lastRulesSig) return;
       lastRulesSig = sig;
@@ -510,26 +528,21 @@
         return;
       }
       els.rulesHeading.textContent = items[0];
-      if (items.length === 1) {
-        els.rulesList.innerHTML = "";
-        return;
-      }
-      els.rulesList.innerHTML = items.slice(1).map(function(line) {
-        return "<p>" + escapeHtml(line) + "</p>";
-      }).join("");
+      els.rulesList.innerHTML = items.length === 1 ? "" :
+        items.slice(1).map(line => "<p>" + escapeHtml(line) + "</p>").join("");
     }
 
     function renderEvent(data) {
       const eventSig = JSON.stringify({
         competitionName: data.competitionName || "Live Event",
-        holeName: data.holeName || "",
-        holeLength: data.holeLength || ""
+        holeName:        data.holeName || "",
+        holeLength:      data.holeLength || ""
       });
       if (eventSig !== lastEventSig) {
         lastEventSig = eventSig;
         els.competition.textContent = data.competitionName || "Live Event";
-        els.holeName.textContent = data.holeName ? data.holeName : "";
-        els.holeName.hidden = !data.holeName;
+        els.holeName.textContent    = data.holeName ? data.holeName : "";
+        els.holeName.hidden         = !data.holeName;
 
         if (data.holeLength) {
           els.holeLength.textContent = "Hole length: " + data.holeLength;
@@ -545,9 +558,9 @@
     }
 
     function renderPrizes(prizes) {
-      const filtered = prizes.filter(function(p) {
-        return (p.place && String(p.place).trim()) || (p.prize && String(p.prize).trim());
-      });
+      const filtered = prizes.filter(p =>
+        (p.place && String(p.place).trim()) || (p.prize && String(p.prize).trim())
+      );
       const sig = JSON.stringify(filtered);
       if (sig === lastPrizesSig) return;
       lastPrizesSig = sig;
@@ -556,8 +569,7 @@
         els.prizeList.innerHTML = '<p class="empty">Prizes to be announced</p>';
         return;
       }
-
-      els.prizeList.innerHTML = filtered.map(function(p, i) {
+      els.prizeList.innerHTML = filtered.map((p, i) => {
         const medal = i < 3 ? MEDALS[i] + " " : "";
         const place = p.place ? escapeHtml(p.place) : "Prize " + (i + 1);
         const prize = p.prize ? escapeHtml(p.prize) : "";
@@ -577,7 +589,6 @@
         lastFlyoverKey = "";
         return;
       }
-
       if (key === lastFlyoverKey) return;
       lastFlyoverKey = key;
 
@@ -585,16 +596,13 @@
       els.flyoverWrap.classList.remove("no-video");
       els.flyoverVideo.src = src;
       els.flyoverVideo.load();
-      els.flyoverVideo.play().catch(function() {});
-
-      els.flyoverVideo.onerror = function() { els.flyoverWrap.classList.add("no-video"); };
-      els.flyoverVideo.onloadeddata = function() { els.flyoverWrap.classList.remove("no-video"); };
+      els.flyoverVideo.play().catch(() => {});
+      els.flyoverVideo.onerror    = () => els.flyoverWrap.classList.add("no-video");
+      els.flyoverVideo.onloadeddata = () => els.flyoverWrap.classList.remove("no-video");
     }
 
     function leaderboardSignature(sorted) {
-      return JSON.stringify(sorted.map(function(p) {
-        return { name: p.name, bestDistance: p.bestDistance };
-      }));
+      return JSON.stringify(sorted.map(p => ({ name: p.name, bestDistance: p.bestDistance })));
     }
 
     function applyRowClasses(row, index, leaderChanged, playerName, prevOrder) {
@@ -608,25 +616,27 @@
         row.classList.add("bronze");
       }
       if (prevOrder.includes(playerName)) {
-        var oldIndex = prevOrder.indexOf(playerName);
+        const oldIndex = prevOrder.indexOf(playerName);
         if (oldIndex !== index) row.classList.add("moved");
       }
     }
 
     function renderLeaderboard(rows) {
-      const stack = document.getElementById("leaderboard-body");
+      const stack  = document.getElementById("leaderboard-body");
       const sorted = (rows || [])
         .slice()
-        .sort(function(a, b) { return a.bestDistance - b.bestDistance; })
+        .sort((a, b) => a.bestDistance - b.bestDistance)
         .slice(0, 10);
 
       const sig = leaderboardSignature(sorted);
       if (sig === lastLeaderboardSig) return;
 
-      const newOrder = sorted.map(function(p) { return p.name; });
-      const currentLeader = sorted.length ? sorted[0].name : null;
-      const leaderChanged = currentLeader && previousLeader && currentLeader !== previousLeader;
-      const layoutMayChange = sorted.length !== previousOrder.length;
+      const newOrder       = sorted.map(p => p.name);
+      const currentLeader  = sorted.length ? sorted[0].name : null;
+      const leaderChanged  = currentLeader && previousLeader && currentLeader !== previousLeader;
+      // Only recalculate TV layout sizing when the row count changes — not on
+      // every data refresh — so existing rows aren't reflowed every 3 seconds.
+      const rowCountChanged = sorted.length !== lastRowCount;
 
       if (!sorted.length) {
         if (!stack.querySelector(".lb-empty")) {
@@ -636,6 +646,7 @@
         previousOrder = [];
         previousLeader = null;
         lastLeaderboardSig = sig;
+        lastRowCount = 0;
         return;
       }
 
@@ -647,7 +658,7 @@
 
       const usedNames = new Set();
 
-      sorted.forEach(function(player, index) {
+      sorted.forEach((player, index) => {
         let row = rowCache.get(player.name);
         if (!row) {
           row = document.createElement("div");
@@ -661,27 +672,29 @@
         usedNames.add(player.name);
 
         applyRowClasses(row, index, leaderChanged, player.name, previousOrder);
-
-        const medal = index < 3 ? MEDALS[index] : String(index + 1);
-        row.querySelector(".lb-rank").textContent = medal;
-        row.querySelector(".lb-name").textContent = player.name;
+        row.querySelector(".lb-rank").textContent     = index < 3 ? MEDALS[index] : String(index + 1);
+        row.querySelector(".lb-name").textContent     = player.name;
         row.querySelector(".lb-distance").textContent = Number(player.bestDistance).toFixed(2);
 
         stack.appendChild(row);
       });
 
-      rowCache.forEach(function(row, name) {
+      rowCache.forEach((row, name) => {
         if (!usedNames.has(name)) {
           row.remove();
           rowCache.delete(name);
         }
       });
 
-      previousOrder = newOrder;
-      previousLeader = currentLeader;
+      previousOrder      = newOrder;
+      previousLeader     = currentLeader;
       lastLeaderboardSig = sig;
+      lastRowCount       = sorted.length;
 
-      if (document.body.classList.contains("tv-mode") && layoutMayChange) {
+      // Only fire the TV layout recalc when the number of rows changed.
+      // Scores changing (same row count) don't need a sizing recalculation,
+      // so the rows stay visually stable between polls.
+      if (document.body.classList.contains("tv-mode") && rowCountChanged) {
         window.dispatchEvent(new CustomEvent("tv-mode-change", { detail: { active: true } }));
       }
     }
