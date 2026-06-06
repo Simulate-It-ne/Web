@@ -40,11 +40,24 @@
 
   function setTvMode(on) {
     document.body.classList.toggle("tv-mode", on);
+    document.documentElement.classList.toggle("tv-mode", on);
     document.querySelectorAll("[data-tv-toggle]").forEach(function (btn) {
       btn.setAttribute("aria-pressed", on ? "true" : "false");
       btn.setAttribute("aria-label", on ? "Exit TV mode" : "TV fullscreen mode");
       btn.setAttribute("title", on ? "Exit TV mode" : "TV mode");
     });
+    document.querySelectorAll("[data-tv-exit]").forEach(function (btn) {
+      btn.hidden = !on;
+    });
+    window.dispatchEvent(new CustomEvent("tv-mode-change", { detail: { active: on } }));
+  }
+
+  function exitTvMode() {
+    setTvMode(false);
+    if (document.fullscreenElement) {
+      if (document.exitFullscreen) document.exitFullscreen().catch(function () {});
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
   }
 
   function initTvMode() {
@@ -53,19 +66,22 @@
 
     btn.addEventListener("click", function () {
       var turningOn = !document.body.classList.contains("tv-mode");
-      setTvMode(turningOn);
       if (turningOn) {
+        setTvMode(true);
         var el = document.documentElement;
         if (el.requestFullscreen) el.requestFullscreen().catch(function () {});
         else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-      } else if (document.fullscreenElement) {
-        if (document.exitFullscreen) document.exitFullscreen().catch(function () {});
-        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      } else {
+        exitTvMode();
       }
     });
 
+    document.querySelectorAll("[data-tv-exit]").forEach(function (exitBtn) {
+      exitBtn.addEventListener("click", exitTvMode);
+    });
+
     function onFullscreenEnd() {
-      if (!document.fullscreenElement) setTvMode(false);
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) setTvMode(false);
     }
     document.addEventListener("fullscreenchange", onFullscreenEnd);
     document.addEventListener("webkitfullscreenchange", onFullscreenEnd);

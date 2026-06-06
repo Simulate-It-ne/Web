@@ -39,8 +39,86 @@
     body.tv-mode .site-header{display:none}
     body.tv-mode .live-note{display:none}
     body.tv-mode .fetch-error:not(.visible){display:none}
-    body.tv-mode .page-wrap{margin-top:.5rem;max-width:100%;width:calc(100% - 1rem)}
-    body.tv-mode .event-header{margin-bottom:.75rem}
+
+    /* TV / fullscreen: fit everything in one screen, no cropping */
+    html.tv-mode, html.tv-mode body{
+      height:100%;overflow:hidden
+    }
+    html.tv-mode body{
+      min-height:0;padding:0;display:block
+    }
+    html:fullscreen, html:-webkit-full-screen{
+      width:100%;height:100%;overflow:hidden;background:var(--bg)
+    }
+    html:fullscreen body, html:-webkit-full-screen body{
+      height:100%;overflow:hidden
+    }
+
+    body.tv-mode .page-wrap{
+      margin:0;width:100%;max-width:none;height:100dvh;height:100vh;
+      padding:.45rem .6rem .5rem;display:flex;flex-direction:column;
+      overflow:hidden;box-sizing:border-box
+    }
+    body.tv-mode .event-header{
+      flex:0 0 auto;margin-bottom:.4rem;padding:.45rem .75rem;border-radius:8px
+    }
+    body.tv-mode .event-header .brand-line{font-size:clamp(.65rem,1.4vh,.8rem);margin-bottom:.15rem}
+    body.tv-mode .event-header h1{
+      font-size:clamp(.95rem,2.8vh,1.65rem);margin-bottom:.15rem;line-height:1.15
+    }
+    body.tv-mode .event-header .hole-meta{font-size:clamp(.8rem,2vh,1.05rem)}
+    body.tv-mode .event-header .hole-length{font-size:clamp(.75rem,1.8vh,.9rem);margin-top:.1rem}
+
+    body.tv-mode .container{
+      flex:1 1 auto;min-height:0;display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);
+      grid-template-rows:minmax(0,1.15fr) minmax(0,0.85fr);
+      gap:.45rem;align-items:stretch;width:100%
+    }
+    body.tv-mode .flyover-panel,
+    body.tv-mode .side-panel,
+    body.tv-mode .leaderboard-panel{
+      min-height:0;border-radius:8px;display:flex;flex-direction:column
+    }
+    body.tv-mode .flyover-panel{grid-column:1;grid-row:1;overflow:hidden}
+    body.tv-mode .side-panel{grid-column:1;grid-row:2;padding:.55rem .65rem;gap:.35rem;overflow:hidden}
+    body.tv-mode .leaderboard-panel{grid-column:2;grid-row:1/span 2;padding:.55rem .65rem;overflow:hidden;height:100%}
+
+    body.tv-mode .flyover-wrap{
+      flex:1 1 auto;min-height:0;width:100%;aspect-ratio:unset
+    }
+    body.tv-mode .flyover-label{font-size:clamp(.65rem,1.6vh,.8rem);padding:.35rem .5rem}
+    body.tv-mode #rules-heading{font-size:clamp(.8rem,2vh,1rem);margin-bottom:.15rem}
+    body.tv-mode .rules{font-size:clamp(.7rem,1.7vh,.88rem);line-height:1.35}
+    body.tv-mode .rules p{margin:.1rem 0}
+    body.tv-mode .prize-box{padding:.45rem .55rem;flex:1 1 auto;min-height:0;overflow:hidden}
+    body.tv-mode .prize-box h3{font-size:clamp(.75rem,1.8vh,.9rem);margin-bottom:.25rem}
+    body.tv-mode #prize-list p{font-size:clamp(.7rem,1.7vh,.85rem);margin:.15rem 0}
+
+    body.tv-mode .leaderboard-title{
+      font-size:clamp(.85rem,2.2vh,1.2rem);margin-bottom:.35rem;padding-bottom:.3rem;flex-shrink:0
+    }
+    body.tv-mode .leaderboard-stack{
+      flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-start
+    }
+    body.tv-mode .lb-row{
+      flex:0 0 auto;padding:clamp(.2rem,0.9vh,.45rem) .35rem;
+      font-size:clamp(.75rem,2vh,1.1rem);gap:.35rem;
+      grid-template-columns:2.5rem 1fr auto
+    }
+    body.tv-mode .lb-row.leader .lb-name{font-size:1.05em}
+    body.tv-mode .lb-row.leader .lb-distance{font-size:1.05em}
+
+    .tv-exit-fab{
+      position:fixed;bottom:.75rem;right:.75rem;z-index:9999;
+      padding:.5rem .85rem;border-radius:999px;border:none;
+      background:rgba(11,23,36,0.75);color:#fff;font:inherit;font-size:.85rem;
+      font-weight:600;cursor:pointer;backdrop-filter:blur(6px);
+      box-shadow:0 4px 16px rgba(0,0,0,0.25)
+    }
+    .tv-exit-fab:hover{background:rgba(11,23,36,0.9)}
+    [data-theme="dark"] .tv-exit-fab{background:rgba(255,255,255,0.15)}
+    [data-theme="dark"] .tv-exit-fab:hover{background:rgba(255,255,255,0.25)}
 
     .header-inner{
       width:min(var(--container-width),calc(100% - 2rem));margin:0 auto;
@@ -190,8 +268,6 @@
       .lb-row.leader .lb-name{font-size:1.25rem}
       .flyover-wrap{min-height:220px}
       #prize-list p{font-size:1.05rem}
-      body.tv-mode .lb-row{font-size:1.35rem}
-      body.tv-mode .event-header h1{font-size:2.5rem}
     }
 
     @media(max-width:768px){
@@ -281,6 +357,8 @@
     <p class="fetch-error" id="fetch-error" role="alert">Unable to load live data. Check your connection and try again.</p>
   </div>
 
+  <button type="button" class="tv-exit-fab" data-tv-exit hidden aria-label="Exit TV mode">Exit TV mode</button>
+
   <script src="theme.js"></script>
   <script>
     (function(){
@@ -300,13 +378,86 @@
       document.addEventListener('keydown', function(e){
         if(e.key === 'Escape'){
           closeNav();
-          if(document.body.classList.contains('tv-mode')){
-            document.body.classList.remove('tv-mode');
-            document.querySelector('[data-tv-toggle]').setAttribute('aria-pressed', 'false');
-            if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
-          }
         }
       });
+    })();
+
+    (function(){
+      var pageWrap = document.querySelector('.page-wrap');
+
+      function fitTvLayout(){
+        if(!document.body.classList.contains('tv-mode') || !pageWrap) return;
+
+        pageWrap.style.transform = '';
+        pageWrap.style.width = '';
+        pageWrap.style.height = '';
+
+        var panel = document.querySelector('.leaderboard-panel');
+        var stack = document.getElementById('leaderboard-body');
+        var rows = stack ? stack.querySelectorAll('.lb-row') : [];
+
+        rows.forEach(function(row){
+          row.style.fontSize = '';
+          row.style.padding = '';
+        });
+
+        if(panel && rows.length){
+          var title = panel.querySelector('.leaderboard-title');
+          var titleH = title ? title.offsetHeight : 0;
+          var available = panel.clientHeight - titleH - 8;
+          var rowH = Math.floor(available / rows.length);
+          rowH = Math.max(26, Math.min(rowH, 52));
+          var fontSize = Math.min(Math.max(rowH * 0.42, 11), 20);
+
+          rows.forEach(function(row){
+            row.style.padding = Math.max(2, rowH * 0.12) + 'px 0.35rem';
+            row.style.fontSize = fontSize + 'px';
+            if(row.classList.contains('leader')){
+              row.querySelector('.lb-name').style.fontSize = (fontSize * 1.08) + 'px';
+              row.querySelector('.lb-distance').style.fontSize = (fontSize * 1.05) + 'px';
+            }
+          });
+        }
+
+        requestAnimationFrame(function(){
+          var vh = window.innerHeight;
+          var vw = window.innerWidth;
+          var sh = pageWrap.scrollHeight;
+          var sw = pageWrap.scrollWidth;
+          var scale = Math.min(1, (vh - 4) / sh, (vw - 4) / sw);
+          if(scale < 0.98){
+            pageWrap.style.transform = 'scale(' + scale + ')';
+            pageWrap.style.transformOrigin = 'top center';
+          }
+        });
+      }
+
+      function resetTvLayout(){
+        if(!pageWrap) return;
+        pageWrap.style.transform = '';
+        pageWrap.style.width = '';
+        pageWrap.style.height = '';
+        document.querySelectorAll('.lb-row').forEach(function(row){
+          row.style.fontSize = '';
+          row.style.padding = '';
+          var name = row.querySelector('.lb-name');
+          var dist = row.querySelector('.lb-distance');
+          if(name) name.style.fontSize = '';
+          if(dist) dist.style.fontSize = '';
+        });
+      }
+
+      window.addEventListener('tv-mode-change', function(e){
+        if(e.detail.active){
+          setTimeout(fitTvLayout, 50);
+          setTimeout(fitTvLayout, 200);
+        } else {
+          resetTvLayout();
+        }
+      });
+      window.addEventListener('resize', fitTvLayout);
+      document.addEventListener('fullscreenchange', function(){ setTimeout(fitTvLayout, 150); });
+      window.addEventListener('load', fitTvLayout);
     })();
 
     const API_URL = "https://script.google.com/macros/s/AKfycbxdvuGY5SikEjbv_L4jBMmg3AZcWw2BExwOd76EAutpXxOpnCBH0dkJReNZmBbhFqD1/exec";
@@ -478,6 +629,9 @@
         renderEvent(data);
         renderLeaderboard(data.leaderboard);
         els.fetchError.classList.remove("visible");
+        if(document.body.classList.contains('tv-mode')){
+          window.dispatchEvent(new CustomEvent('tv-mode-change', { detail: { active: true } }));
+        }
       } catch (error) {
         console.error("Leaderboard fetch failed", error);
         els.fetchError.classList.add("visible");

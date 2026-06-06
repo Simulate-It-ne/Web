@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Simulate It | Golf Simulator Hire — North East England</title>
+  <title>Simulate It | Golf Simulator Hire — Newcastle, Northumberland &amp; North East</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Golf simulator hire in Northumberland and the North East. Launch-monitor accuracy for corporate days, parties and events." />
+  <meta name="description" content="Professional golf simulator hire for corporate events, weddings and parties across Newcastle, Northumberland, Sunderland, Durham and the North East. Packages from £499." />
   <link rel="icon" href="Photos/Logo.png" type="image/png" />
   <link rel="preload" as="image" href="Photos/Ball_Screen.jpeg" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -14,22 +14,19 @@
       --bg:#f6f8fb;--surface:#ffffff;--primary:#0f62fe;--text:#0b1724;--muted:#64748b;
       --border:rgba(11,23,36,0.08);--shadow:0 6px 18px rgba(17,24,39,0.06);
       --card-radius:12px;--container-width:1100px;--base-font-size:17px;--base-line:1.55;
-      --header-h:3.5rem;--section-pad:3rem;--hero-overlay:rgba(11,23,36,0.55);
+      --header-h:3.5rem;--section-pad:3rem;--hero-overlay:rgba(11,23,36,0.58);
       --parallax-overlay:rgba(11,23,36,0.45);--prize-bg:linear-gradient(180deg,#fff,#fbfdff);
-      color-scheme:light
+      --mobile-cta-h:4rem;color-scheme:light
     }
     [data-theme="dark"]{
       --bg:#0c1118;--surface:#151d2b;--primary:#4d9aff;--text:#e8eef6;--muted:#94a3b8;
       --border:rgba(255,255,255,0.08);--shadow:0 8px 24px rgba(0,0,0,0.35);
-      --hero-overlay:rgba(0,0,0,0.65);--parallax-overlay:rgba(0,0,0,0.55);
-      --prize-bg:linear-gradient(180deg,#1a2438,#151d2b);
-      color-scheme:dark
+      --hero-overlay:rgba(0,0,0,0.68);--parallax-overlay:rgba(0,0,0,0.55);
+      --prize-bg:linear-gradient(180deg,#1a2438,#151d2b);color-scheme:dark
     }
     *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    @media (prefers-reduced-motion: reduce){
-      html{scroll-behavior:auto}
-    }
+    html{scroll-behavior:smooth;scroll-padding-top:calc(var(--header-h) + 1rem)}
+    @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
     body{
       margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
       background:var(--bg);color:var(--text);font-size:var(--base-font-size);line-height:var(--base-line);
@@ -40,14 +37,10 @@
     img{display:block;max-width:100%;height:auto}
     h1,h2,h3{line-height:1.15;margin-top:0}
     h2{font-size:clamp(1.35rem,2.5vw,1.75rem);margin-bottom:.75rem}
+    h3{font-size:1.1rem}
     .section-intro{color:var(--muted);max-width:42rem;margin:0 0 1.5rem;line-height:1.6}
 
-    /* Sticky header */
-    .site-header{
-      position:sticky;top:0;z-index:1000;background:var(--surface);
-      box-shadow:0 2px 8px var(--border);min-height:var(--header-h)
-    }
-    .header-actions{display:flex;align-items:center;gap:.35rem}
+    .site-header{position:sticky;top:0;z-index:1000;background:var(--surface);box-shadow:0 2px 8px var(--border);min-height:var(--header-h)}
     .icon-btn{
       display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;
       padding:0 .65rem;border:1px solid var(--border);border-radius:8px;background:var(--surface);
@@ -65,8 +58,7 @@
     .brand-logo{width:40px;height:40px;object-fit:contain}
     .nav-toggle{
       display:none;align-items:center;justify-content:center;width:44px;height:44px;
-      border:1px solid var(--border);border-radius:8px;background:var(--surface);
-      cursor:pointer;padding:0
+      border:1px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;padding:0
     }
     .nav-toggle span,.nav-toggle span::before,.nav-toggle span::after{
       display:block;width:20px;height:2px;background:var(--text);position:relative;transition:transform .2s,opacity .2s
@@ -77,35 +69,28 @@
     body.nav-open .nav-toggle span{background:transparent}
     body.nav-open .nav-toggle span::before{transform:translateY(6px) rotate(45deg)}
     body.nav-open .nav-toggle span::after{transform:translateY(-6px) rotate(-45deg)}
-    .main-nav ul{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:.25rem;flex-wrap:wrap}
-    .main-nav a{
-      display:inline-flex;align-items:center;min-height:44px;padding:0 .75rem;
-      border-radius:8px;color:var(--text);font-weight:600;font-size:.95rem
-    }
+    .main-nav ul{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:.15rem;flex-wrap:wrap}
+    .main-nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 .65rem;border-radius:8px;color:var(--text);font-weight:600;font-size:.9rem}
     .main-nav a:hover{background:rgba(15,98,254,0.06);text-decoration:none;color:var(--primary)}
-    .main-nav .nav-cta{
-      background:var(--primary);color:#fff!important;margin-left:.25rem;
-      padding:0 1rem;border-radius:999px;box-shadow:0 4px 12px rgba(15,98,254,0.2)
-    }
+    .main-nav .nav-cta{background:var(--primary);color:#fff!important;padding:0 .85rem;border-radius:999px;box-shadow:0 4px 12px rgba(15,98,254,0.2)}
     .main-nav .nav-cta:hover{background:#0b4fd4;text-decoration:none}
     .main-nav .nav-leaderboard{color:var(--primary)}
 
-    /* Hero */
     .hero{
-      position:relative;min-height:min(85vh,640px);display:flex;align-items:center;justify-content:center;
-      text-align:center;color:#fff;padding:4rem 1.25rem;
+      position:relative;min-height:min(88vh,680px);display:flex;align-items:center;justify-content:center;
+      text-align:center;color:#fff;padding:4rem 1.25rem 3.5rem;
       background:url('Photos/Ball_Screen.jpeg') center/cover no-repeat
     }
-    .hero::before{
-      content:"";position:absolute;inset:0;background:var(--hero-overlay);z-index:0
+    .hero::before{content:"";position:absolute;inset:0;background:var(--hero-overlay);z-index:0}
+    .hero-inner{position:relative;z-index:1;max-width:780px}
+    .hero .eyebrow{font-weight:700;color:#93c5fd;letter-spacing:.12em;text-transform:uppercase;font-size:.78rem;margin-bottom:.75rem}
+    .hero h1{font-size:clamp(1.85rem,4.8vw,2.85rem);margin:0 0 .85rem;font-weight:800;line-height:1.12}
+    .hero .hero-sub{font-size:clamp(1rem,2.1vw,1.2rem);margin:0 0 1.25rem;line-height:1.55;opacity:.96;max-width:36rem;margin-left:auto;margin-right:auto}
+    .hero-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem;margin-bottom:1.5rem}
+    .hero-pill{
+      font-size:.78rem;font-weight:600;padding:.35rem .75rem;border-radius:999px;
+      background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.25);color:#fff
     }
-    .hero-inner{position:relative;z-index:1;max-width:720px}
-    .hero .eyebrow{
-      font-weight:700;color:#93c5fd;letter-spacing:.14em;text-transform:uppercase;
-      font-size:.8rem;margin-bottom:.75rem
-    }
-    .hero h1{font-size:clamp(1.75rem,4.5vw,2.75rem);margin:0 0 1rem;font-weight:800}
-    .hero p{font-size:clamp(1rem,2vw,1.2rem);margin:0 0 1.75rem;line-height:1.55;opacity:.95}
     .btn{
       display:inline-flex;align-items:center;justify-content:center;min-height:48px;
       padding:.75rem 1.75rem;background:var(--primary);color:#fff!important;
@@ -113,115 +98,165 @@
       box-shadow:0 8px 20px rgba(15,98,254,0.35);text-decoration:none!important
     }
     .btn:hover{background:#0b4fd4;text-decoration:none!important}
-    .btn-outline{
-      background:transparent;border:2px solid #fff;margin-left:.75rem;
-      box-shadow:none
-    }
+    .btn-outline{background:transparent;border:2px solid #fff;box-shadow:none}
     .btn-outline:hover{background:rgba(255,255,255,0.12)}
+    .btn-secondary{background:var(--surface);color:var(--text)!important;border:1px solid var(--border);box-shadow:var(--shadow)}
+
+    .urgency-banner{
+      background:linear-gradient(90deg,rgba(15,98,254,0.12),rgba(15,98,254,0.04));
+      border-bottom:1px solid var(--border);text-align:center;padding:.65rem 1rem;
+      font-size:.92rem;font-weight:600;color:var(--text)
+    }
+    .urgency-banner a{font-weight:700}
 
     main{width:min(var(--container-width),calc(100% - 2rem));margin:0 auto;padding-bottom:4rem}
-    .section{padding:var(--section-pad) 0}
+    .section{padding:var(--section-pad) 0;scroll-margin-top:calc(var(--header-h) + 1rem)}
     .section:first-of-type{padding-top:2.5rem}
-
-    .steps{display:grid;gap:1.25rem;margin-top:1.5rem}
-    @media(min-width:768px){.steps{grid-template-columns:repeat(3,1fr)}}
-    .step-card{
-      background:var(--surface);border-radius:var(--card-radius);padding:1.25rem 1.5rem;
-      border:1px solid rgba(11,23,36,0.05);box-shadow:0 4px 14px rgba(17,24,39,0.04)
+    #home{scroll-margin-top:0}
+    .price-from{
+      display:inline-block;margin-top:.5rem;padding:.45rem .85rem;border-radius:999px;
+      background:rgba(15,98,254,0.1);color:var(--primary);font-weight:700;font-size:.95rem
     }
-    .step-card h3{margin:0 0 .35rem;font-size:1.05rem}
-    .step-card p{margin:0;color:var(--muted);font-size:.95rem;line-height:1.5}
 
-    .cards{display:grid;gap:1.25rem}
-    @media(min-width:768px){.cards{grid-template-columns:repeat(3,1fr)}}
-    .card{
-      background:var(--surface);border-radius:var(--card-radius);padding:1.5rem;
+    .steps,.cards,.venue-grid,.trust-stats{display:grid;gap:1.25rem}
+    @media(min-width:768px){
+      .steps{grid-template-columns:repeat(3,1fr)}
+      .cards{grid-template-columns:repeat(3,1fr)}
+      .venue-grid{grid-template-columns:repeat(3,1fr)}
+      .trust-stats{grid-template-columns:repeat(4,1fr)}
+    }
+    .step-card,.card,.venue-card,.trust-stat,.about-card,.case-card,.area-card{
+      background:var(--surface);border-radius:var(--card-radius);padding:1.25rem 1.5rem;
       border:1px solid var(--border);box-shadow:var(--shadow)
     }
+    .step-card h3,.card h3{margin:0 0 .35rem;font-size:1.05rem}
+    .step-card p,.card p{margin:0;color:var(--muted);font-size:.95rem;line-height:1.5}
     .card-icon{font-size:1.75rem;margin-bottom:.5rem;line-height:1}
-    .card h3{margin:0 0 .5rem;font-size:1.1rem}
-    .card p{margin:0;color:var(--muted);font-size:.95rem;line-height:1.55}
+
+    .included-list{margin:1rem 0 0;padding:0;list-style:none;color:var(--muted)}
+    .included-list li{
+      padding:.45rem 0 .45rem 1.35rem;position:relative;font-size:.98rem;line-height:1.5;
+      border-bottom:1px solid var(--border)
+    }
+    .included-list li:last-child{border-bottom:none}
+    .included-list li::before{content:"✓";position:absolute;left:0;color:var(--primary);font-weight:700}
+    .pricing-simple{max-width:36rem}
+
+    .corporate-list{margin:1rem 0 0;padding:0;list-style:none;display:grid;gap:.5rem}
+    @media(min-width:600px){.corporate-list{grid-template-columns:1fr 1fr}}
+    .corporate-list li{
+      display:flex;gap:.5rem;align-items:flex-start;padding:.75rem 1rem;
+      background:var(--surface);border-radius:8px;border:1px solid var(--border);font-size:.95rem
+    }
+    .corporate-list li::before{content:"→";color:var(--primary);font-weight:700}
 
     .why-list{margin:0;padding:0;list-style:none;display:grid;gap:.75rem}
     @media(min-width:600px){.why-list{grid-template-columns:1fr 1fr}}
     .why-list li{
       display:flex;gap:.65rem;align-items:flex-start;background:var(--surface);
-      padding:1rem 1.15rem;border-radius:10px;border:1px solid rgba(11,23,36,0.05)
+      padding:1rem 1.15rem;border-radius:10px;border:1px solid var(--border)
     }
     .why-list li::before{content:"✓";flex-shrink:0;font-weight:800;color:var(--primary)}
 
-    .testimonial{
-      text-align:center;padding:1.5rem;background:var(--surface);border-radius:var(--card-radius);
-      border:1px solid rgba(11,23,36,0.05);margin-top:1rem
-    }
-    .testimonial .stars{color:#f59e0b;font-size:1.1rem;letter-spacing:.1em;margin-bottom:.5rem}
-    .testimonial p{margin:0;color:var(--muted);font-style:italic;font-size:.98rem}
+    .trust-stat{text-align:center;padding:1rem}
+    .trust-stat strong{display:block;font-size:1.1rem;margin-bottom:.2rem}
+    .trust-stat span{font-size:.85rem;color:var(--muted)}
 
-    /* Parallax band */
+    .faq-list{display:grid;gap:.65rem;margin-top:1rem}
+    .faq-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+    .faq-item summary{
+      padding:1rem 1.15rem;font-weight:600;cursor:pointer;list-style:none;
+      display:flex;justify-content:space-between;align-items:center;gap:.5rem
+    }
+    .faq-item summary::-webkit-details-marker{display:none}
+    .faq-item summary::after{content:"+";font-size:1.2rem;color:var(--primary);font-weight:700}
+    .faq-item[open] summary::after{content:"−"}
+    .faq-item p{padding:0 1.15rem 1rem;margin:0;color:var(--muted);font-size:.95rem;line-height:1.55}
+
+    .case-card h3{margin-bottom:.35rem}
+    .case-card .meta{font-size:.85rem;color:var(--primary);font-weight:600;margin-bottom:.5rem}
+    .case-card p{margin:0;color:var(--muted);font-size:.95rem;line-height:1.55}
+    .case-cards{display:grid;gap:1.25rem}
+    @media(min-width:768px){.case-cards{grid-template-columns:1fr 1fr}}
+
+    .about-card{display:grid;gap:1rem}
+    @media(min-width:700px){.about-card{grid-template-columns:1fr 2fr;align-items:start}}
+    .about-placeholder{
+      aspect-ratio:4/3;border-radius:10px;background:var(--bg);border:1px dashed var(--border);
+      display:flex;align-items:center;justify-content:center;text-align:center;padding:1rem;
+      color:var(--muted);font-size:.9rem
+    }
+
     .parallax{
       background:url('Photos/Driving%20range.PNG') center/cover no-repeat fixed;
-      position:relative;padding:4rem 1.25rem;color:#fff;text-align:center;margin:0 calc(50% - 50vw);
-      width:100vw
+      position:relative;padding:4rem 1.25rem;color:#fff;text-align:center;margin:0 calc(50% - 50vw);width:100vw
     }
     .parallax::before{content:"";position:absolute;inset:0;background:var(--parallax-overlay)}
     .parallax-content{position:relative;max-width:36rem;margin:0 auto}
     .parallax-content h2{color:#fff;margin-bottom:.75rem;font-size:clamp(1.35rem,3vw,1.85rem)}
     .parallax-content p{margin:0;opacity:.95;line-height:1.55}
 
-    .gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:1rem}
-    .gallery-item{
-      border-radius:10px;overflow:hidden;background:#fff;border:1px solid rgba(11,23,36,0.05);
-      aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;padding:.5rem
+    .gallery-note{
+      font-size:.9rem;color:var(--muted);margin-bottom:1rem;padding:.85rem 1rem;
+      background:var(--surface);border-radius:8px;border:1px solid var(--border)
     }
-    .gallery-item img{width:100%;height:100%;object-fit:contain}
+    .gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}
+    .gallery-item{
+      border-radius:10px;overflow:hidden;background:var(--surface);border:1px solid var(--border);
+      aspect-ratio:4/3;display:flex;flex-direction:column
+    }
+    .gallery-item img{width:100%;height:100%;object-fit:cover;flex:1}
+    .gallery-item figcaption{font-size:.78rem;padding:.4rem .55rem;color:var(--muted);text-align:center;background:var(--bg)}
+
+    .venue-card h3{margin-bottom:.35rem;font-size:1rem}
+    .venue-card p{margin:0;color:var(--muted);font-size:.92rem;line-height:1.5}
+    .venue-card strong{color:var(--text)}
 
     .form-grid{display:grid;gap:1.25rem}
     @media(min-width:900px){.form-grid{grid-template-columns:1fr 1fr}}
-    .form-card{
-      background:var(--surface);padding:1.5rem;border-radius:var(--card-radius);
-      border:1px solid var(--border);box-shadow:var(--shadow)
-    }
+    .form-card{background:var(--surface);padding:1.5rem;border-radius:var(--card-radius);border:1px solid var(--border);box-shadow:var(--shadow)}
     .form-card h3{margin-top:0}
     .contact-details{margin:1rem 0 0;padding:0;list-style:none;color:var(--muted)}
     .contact-details li{margin-bottom:.35rem}
     .contact-details a{color:var(--primary);font-weight:600}
+    .cta-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+    .cta-row .btn,.cta-row .btn-secondary{font-size:.9rem;padding:.6rem 1.1rem;min-height:44px}
     .form-group{display:grid;margin-bottom:1rem}
     .form-group label{font-weight:600;margin-bottom:.35rem}
-    .form-group input,.form-group textarea{
-      padding:.75rem;border-radius:8px;border:1px solid rgba(11,23,36,0.1);
-      font:inherit;min-height:44px
-    }
+    .form-group input,.form-group textarea{padding:.75rem;border-radius:8px;border:1px solid var(--border);font:inherit;min-height:44px;background:var(--bg);color:var(--text)}
     .form-group textarea{min-height:100px;resize:vertical}
     .submit-button{
       width:100%;min-height:48px;background:var(--primary);border-radius:999px;
-      padding:.75rem 1.25rem;border:none;color:#fff;font-weight:700;cursor:pointer;
-      font-size:1rem;box-shadow:0 6px 12px rgba(15,98,254,0.2)
+      padding:.75rem 1.25rem;border:none;color:#fff;font-weight:700;cursor:pointer;font-size:1rem
     }
     .submit-button:hover{background:#0b4fd4}
 
     footer{
       width:min(var(--container-width),calc(100% - 2rem));margin:0 auto 2rem;
-      padding-top:1.5rem;border-top:1px solid rgba(11,23,36,0.08);
+      padding-top:1.5rem;border-top:1px solid var(--border);
       color:var(--muted);font-size:.9rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem
     }
+    footer .footer-links{display:flex;flex-wrap:wrap;gap:.75rem 1.25rem}
 
-    /* Scroll reveal */
+    .mobile-cta-bar{
+      display:none;position:fixed;bottom:0;left:0;right:0;z-index:999;
+      padding:.5rem .75rem calc(.5rem + env(safe-area-inset-bottom));
+      background:var(--surface);border-top:1px solid var(--border);
+      box-shadow:0 -4px 20px rgba(0,0,0,0.08);gap:.5rem
+    }
+    .mobile-cta-bar a{flex:1;text-align:center;font-size:.9rem;min-height:44px;padding:.55rem .75rem}
+
     .reveal{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}
     .reveal.is-visible{opacity:1;transform:translateY(0)}
 
     @media (prefers-reduced-motion: reduce){
       .reveal{opacity:1;transform:none;transition:none}
       .parallax{background-attachment:scroll}
-      body.nav-open .nav-toggle span::before,
-      body.nav-open .nav-toggle span::after{transition:none}
     }
-
-    @media(max-width:800px){
-      .parallax{background-attachment:scroll}
-    }
-
+    @media(max-width:800px){.parallax{background-attachment:scroll}}
     @media(max-width:768px){
       :root{--section-pad:2.25rem}
+      body{padding-bottom:var(--mobile-cta-h)}
       .nav-toggle{display:inline-flex}
       .main-nav{
         position:fixed;top:var(--header-h);left:0;right:0;background:var(--surface);
@@ -232,19 +267,29 @@
       body.nav-open .main-nav{transform:translateY(0);opacity:1;pointer-events:auto}
       body.nav-open{overflow:hidden}
       .main-nav ul{flex-direction:column;align-items:stretch;gap:.25rem}
-      .main-nav a{width:100%;justify-content:flex-start;padding:0 1rem}
-      .main-nav .nav-cta{margin-left:0;margin-top:.5rem;justify-content:center}
-      .hero{min-height:70vh;padding:3rem 1rem}
-      .hero .btn{width:100%;margin:.5rem 0 0}
-      .hero .btn-outline{margin-left:0;border-color:rgba(255,255,255,0.85)}
-      .btn-outline{display:inline-flex}
+      .main-nav a{width:100%;justify-content:flex-start;padding:0 1rem;font-size:.95rem}
+      .main-nav .nav-cta{margin-top:.35rem;justify-content:center}
+      .hero{min-height:75vh;padding:3rem 1rem 2.5rem}
+      .hero .btn,.hero .btn-outline{width:100%;margin:.35rem 0 0}
+      .mobile-cta-bar{display:flex}
     }
-
     @media(min-width:769px){
-      .hero .hero-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
-      .hero .btn-outline{margin-left:0}
+      .hero{min-height:min(82vh,620px);background-position:center 35%;background-size:cover}
+      .hero-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
     }
+    @media(min-width:1100px){.hero{background-position:center 28%}}
   </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "Simulate It",
+    "description": "Golf simulator hire for corporate events, weddings and private parties across the North East of England.",
+    "areaServed": ["Newcastle upon Tyne", "Northumberland", "Sunderland", "Durham", "Middlesbrough", "North East England"],
+    "email": "simulate.it.ne@gmail.com",
+    "priceRange": "££"
+  }
+  </script>
 </head>
 <body>
   <header class="site-header">
@@ -259,27 +304,36 @@
           <span></span>
         </button>
         <nav class="main-nav" id="main-nav" aria-label="Main">
-        <ul>
-          <li><a href="#home">Home</a></li>
-          <li><a href="#services">Hire</a></li>
-          <li><a href="#equipment">Equipment</a></li>
-          <li><a href="#contact">Contact</a></li>
-          <li><a class="nav-leaderboard" href="Leaderboard.html">Live Leaderboard</a></li>
-          <li><a class="nav-cta" href="#contact">Get a Quote</a></li>
-        </ul>
+          <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#services">Hire</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#corporate">Corporate</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li><a class="nav-leaderboard" href="Leaderboard.html">Leaderboard</a></li>
+            <li><a class="nav-cta" href="#contact">Get a Quote</a></li>
+          </ul>
         </nav>
       </div>
     </div>
   </header>
 
+  <p class="urgency-banner reveal">Popular dates book quickly — <a href="#contact">check availability for your event</a></p>
+
   <section id="home" class="hero">
     <div class="hero-inner reveal">
-      <p class="eyebrow">Northumberland &amp; the North East</p>
-      <h1>Golf Simulator Hire in North East England</h1>
-      <p>Bring golf to your event with accurate launch monitors and well-maintained equipment.</p>
+      <h1>Turn Any Event Into a Golf Challenge</h1>
+      <p class="hero-sub">Professional golf simulator hire for corporate events, weddings and private parties across the North East.</p>
+      <div class="hero-pills">
+        <span class="hero-pill">Quick setup</span>
+        <span class="hero-pill">Fully insured</span>
+        <span class="hero-pill">All abilities welcome</span>
+        <span class="hero-pill">On-site support</span>
+      </div>
       <div class="hero-actions">
-        <a href="#contact" class="btn">Book Now</a>
-        <a href="#services" class="btn btn-outline">How It Works</a>
+        <a href="#contact" class="btn">Get a Quote</a>
+        <a href="#pricing" class="btn btn-outline">What&rsquo;s Included</a>
       </div>
     </div>
   </section>
@@ -291,7 +345,7 @@
       <div class="steps">
         <article class="step-card reveal">
           <h3>We deliver &amp; set up</h3>
-          <p>Our team arrives with a compact bay that fits most venues.</p>
+          <p>Our team arrives with a compact bay that fits most venues — typically under an hour to get you ready to play.</p>
         </article>
         <article class="step-card reveal">
           <h3>Guests play &amp; compete</h3>
@@ -304,14 +358,49 @@
       </div>
     </section>
 
+    <section id="pricing" class="section">
+      <h2 class="reveal">Packages &amp; Pricing</h2>
+      <div class="pricing-simple reveal">
+        <p class="price-from" style="margin-top:0">Packages start from £499</p>
+        <p class="section-intro" style="margin-top:1rem;margin-bottom:.75rem">Bronze, Silver, Gold and Corporate options are available — final pricing depends on duration, venue and date. Every enquiry receives a tailored quote.</p>
+        <h3 style="font-size:1.05rem;margin-bottom:.5rem">What&rsquo;s included as standard</h3>
+        <ul class="included-list">
+          <li>Delivery, setup and pack-down at your venue</li>
+          <li>FlightScope launch monitor, hitting bay and premium turf mat</li>
+          <li>On-site support throughout your booking</li>
+          <li>Closest-to-the-pin or casual play — we adapt to your event</li>
+          <li>Public liability insurance for corporate and private hires</li>
+        </ul>
+        <div class="cta-row" style="margin-top:1.25rem">
+          <a href="#contact" class="btn">Get a Quote</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="corporate" class="section">
+      <h2 class="reveal">Corporate &amp; Brand Events</h2>
+      <p class="section-intro reveal">Corporate clients are often our highest-value bookings — and for good reason. A simulator creates a natural talking point, keeps guests engaged and works brilliantly as a branded competition.</p>
+      <ul class="corporate-list reveal">
+        <li>Trade shows &amp; exhibitions</li>
+        <li>Networking events &amp; hospitality</li>
+        <li>Staff engagement &amp; team days</li>
+        <li>Product launches &amp; brand activations</li>
+        <li>Charity golf days &amp; fundraisers</li>
+        <li>Client entertainment &amp; awards evenings</li>
+      </ul>
+      <div class="cta-row reveal">
+        <a href="#contact" class="btn">Enquire About Corporate Hire</a>
+      </div>
+    </section>
+
     <section id="equipment" class="section">
       <h2 class="reveal">Our Equipment</h2>
-      <p class="section-intro reveal">Reliable kit for accurate shot tracking and a realistic indoor round.</p>
+      <p class="section-intro reveal">Professional equipment chosen for accurate indoor tracking and a polished event experience.</p>
       <div class="cards">
         <article class="card reveal">
           <div class="card-icon" aria-hidden="true">📡</div>
           <h3>FlightScope Mevo Gen2</h3>
-          <p>Accurate launch monitor with good indoor performance and 20+ data metrics for each shot.</p>
+          <p>High-accuracy launch monitor with excellent indoor performance, providing over 20 detailed data metrics for every shot.</p>
         </article>
         <article class="card reveal">
           <div class="card-icon" aria-hidden="true">⛳</div>
@@ -321,7 +410,26 @@
         <article class="card reveal">
           <div class="card-icon" aria-hidden="true">🏌️</div>
           <h3>GolfBays Premium Hitting Bay</h3>
-          <p>Proper enclosure and mat with realistic turf feel and a durable hitting strip.</p>
+          <p>Purpose-built enclosure paired with a premium turf mat, delivering realistic feedback and exceptional durability through a robust hitting strip, for an authentic playing experience.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="venue" class="section">
+      <h2 class="reveal">Venue Requirements</h2>
+      <p class="section-intro reveal">Not sure if your venue will work? These are our typical requirements — get in touch if you&rsquo;re unsure and we&rsquo;ll advise.</p>
+      <div class="venue-grid">
+        <article class="venue-card reveal">
+          <h3>Space</h3>
+          <p><strong>Approx. 5m &times; 3m</strong> clear floor area for the bay, plus room for guests to watch comfortably.</p>
+        </article>
+        <article class="venue-card reveal">
+          <h3>Ceiling height</h3>
+          <p><strong>2.7m (9ft) minimum</strong> recommended for a full swing. Lower ceilings may still work — tell us your measurements.</p>
+        </article>
+        <article class="venue-card reveal">
+          <h3>Power &amp; access</h3>
+          <p><strong>Standard 13A socket</strong> nearby. Indoor setups are preferred; outdoor hire may be possible with cover — ask us.</p>
         </article>
       </div>
     </section>
@@ -333,53 +441,135 @@
       </div>
     </section>
 
+    <section id="about" class="section">
+      <h2 class="reveal">About Simulate It</h2>
+      <div class="about-card reveal">
+        <div class="about-placeholder" aria-hidden="true">Founder / team photo<br>coming soon</div>
+        <div>
+          <p class="section-intro" style="margin-top:0">Simulate It was built around a simple idea: bring the buzz of a golf challenge to any event, without the hassle. We handle delivery, setup and running the competition so hosts can enjoy the day.</p>
+          <p style="color:var(--muted);line-height:1.6;margin:0">Based in the North East, we serve Newcastle, Northumberland, Sunderland, Durham, Teesside and further afield by arrangement — with attentive on-site support and an experience guests enjoy coming back to.</p>
+        </div>
+      </div>
+    </section>
+
     <section id="why-us" class="section">
       <h2 class="reveal">Why Choose Us</h2>
-      <ul class="why-list">
-        <li class="reveal">Local service across Northumberland and the North East — we know your venues and roads.</li>
+      <div class="trust-stats reveal">
+        <div class="trust-stat"><strong>Fully insured</strong><span>Public liability cover for events</span></div>
+        <div class="trust-stat"><strong>FlightScope</strong><span>Professional launch monitor</span></div>
+        <div class="trust-stat"><strong>GolfBays bay</strong><span>Purpose-built hitting enclosure</span></div>
+        <div class="trust-stat"><strong>North East based</strong><span>Local venues &amp; event locations</span></div>
+      </div>
+      <ul class="why-list" style="margin-top:1.25rem">
+        <li class="reveal">Trusted local service across Northumberland and the North East with expert knowledge of local venues and event locations.</li>
         <li class="reveal">Fully insured for peace of mind at corporate and private events.</li>
         <li class="reveal">Experienced on-site staff to set up, run competitions and keep play flowing.</li>
-        <li class="reveal">Solid equipment and a relaxed setup that guests tend to remember.</li>
+        <li class="reveal">High quality equipment and a seamless, relaxed setup that creates a memorable experience for your guests.</li>
       </ul>
-      <blockquote class="testimonial reveal">
-        <div class="stars" aria-label="5 out of 5 stars">★★★★★</div>
-        <p>&ldquo;Great addition to our corporate day — everyone wanted another go.&rdquo;</p>
-      </blockquote>
+    </section>
+
+    <section id="areas" class="section">
+      <h2 class="reveal">Areas We Cover</h2>
+      <article class="area-card reveal" style="max-width:42rem">
+        <p style="color:var(--muted);margin:0;font-size:.98rem;line-height:1.6">We hire across the North East including <strong>Newcastle &amp; Gateshead</strong>, <strong>Northumberland</strong>, <strong>Sunderland</strong>, <strong>Durham</strong> and <strong>Teesside</strong> — travelling to your venue for corporate events, weddings, charity days and private parties.</p>
+        <p style="color:var(--muted);margin:.75rem 0 0;font-size:.95rem">Further afield may be possible — get in touch with your location and we&rsquo;ll let you know.</p>
+      </article>
+    </section>
+
+    <section id="case-studies" class="section">
+      <h2 class="reveal">Event Formats</h2>
+      <p class="section-intro reveal">Every event is different — here are two formats we run regularly. Replace with your own photos and details as your portfolio grows.</p>
+      <div class="case-cards">
+        <article class="case-card reveal">
+          <p class="meta">Charity &amp; corporate format</p>
+          <h3>Closest-to-the-pin challenge</h3>
+          <p>Guests take multiple shots at a famous course hole. Scores update throughout the event — ideal for fundraisers, exhibitions and branded competitions. We manage the queue and keep play moving.</p>
+        </article>
+        <article class="case-card reveal">
+          <p class="meta">Private events format</p>
+          <h3>Wedding &amp; party entertainment</h3>
+          <p>A relaxed, social setup where guests dip in throughout the day or evening. No golf experience needed — our team helps everyone get started and keeps the atmosphere light and fun.</p>
+        </article>
+      </div>
     </section>
 
     <section id="gallery" class="section">
       <h2 class="reveal">Gallery</h2>
+      <p class="gallery-note reveal">More event photos — guests playing, corporate setups and competitions — coming soon. For now, here&rsquo;s a look at the simulator experience.</p>
       <div class="gallery">
-        <div class="gallery-item reveal">
+        <figure class="gallery-item reveal">
           <img src="Photos/Driving%20range.PNG" alt="Driving range simulator view" loading="lazy" decoding="async" width="800" height="600">
-        </div>
-        <div class="gallery-item reveal">
-          <img src="Photos/Kiawah%2017.PNG" alt="Kiawah Island hole" loading="lazy" decoding="async" width="800" height="600">
-        </div>
-        <div class="gallery-item reveal">
-          <img src="Photos/Torrey%20Pines%203.PNG" alt="Torrey Pines hole" loading="lazy" decoding="async" width="800" height="600">
-        </div>
-        <div class="gallery-item reveal">
+          <figcaption>Simulator course view</figcaption>
+        </figure>
+        <figure class="gallery-item reveal">
           <img src="Photos/User_screen.jpeg" alt="Player on simulator screen" loading="lazy" decoding="async" width="800" height="600">
-        </div>
+          <figcaption>Player screen</figcaption>
+        </figure>
+        <figure class="gallery-item reveal">
+          <img src="Photos/Kiawah%2017.PNG" alt="Kiawah Island hole" loading="lazy" decoding="async" width="800" height="600">
+          <figcaption>Championship course</figcaption>
+        </figure>
+        <figure class="gallery-item reveal">
+          <img src="Photos/Torrey%20Pines%203.PNG" alt="Torrey Pines hole" loading="lazy" decoding="async" width="800" height="600">
+          <figcaption>Iconic holes</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="faq" class="section">
+      <h2 class="reveal">Frequently Asked Questions</h2>
+      <div class="faq-list reveal">
+        <details class="faq-item">
+          <summary>How much space is required?</summary>
+          <p>We typically need around 5m &times; 3m of clear floor space for the bay, plus room for guests to gather. We&rsquo;re happy to assess your venue before you book.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Can it be used outdoors?</summary>
+          <p>Indoor hire is preferred for the best experience. Outdoor setups may be possible with suitable cover and a flat surface — contact us to discuss your venue.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How long does setup take?</summary>
+          <p>Usually under an hour from arrival to first shot, depending on venue access and layout. We recommend allowing a little extra time before guests arrive.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Do guests need golf experience?</summary>
+          <p>Not at all. We welcome complete beginners and experienced players. Our team helps everyone get started and keeps the format fun for all abilities.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Is power required?</summary>
+          <p>Yes — a standard 13A mains socket within reach of the setup area. Extension leads can be used where safe and appropriate.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How many people can play per hour?</summary>
+          <p>It depends on the format, but as a guide roughly 8–12 players per hour for closest-to-the-pin. We&rsquo;ll recommend a format based on your guest numbers and event length.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What if the venue has low ceilings?</summary>
+          <p>We recommend at least 2.7m (9ft). Lower ceilings may still work with adjusted swing length or shorter clubs — send us your ceiling height and we&rsquo;ll advise honestly.</p>
+        </details>
       </div>
     </section>
 
     <section id="contact" class="section">
       <h2 class="reveal">Ready to Play? Contact Us</h2>
-      <p class="section-intro reveal">Tell us about your event and we&rsquo;ll confirm date, venue needs and package options.</p>
+      <p class="section-intro reveal">Tell us about your event and we&rsquo;ll confirm date, venue needs and package options. Popular dates book quickly — enquire early to secure your slot.</p>
       <div class="form-grid">
         <div class="form-card reveal">
           <h3>Get a quote</h3>
-          <p style="color:var(--muted);margin-bottom:.75rem">Serving Northumberland and the wider North East.</p>
+          <p style="color:var(--muted);margin-bottom:.5rem">Serving the North East and further afield by arrangement.</p>
+          <p class="price-from">Packages from £499</p>
           <ul class="contact-details">
             <li><strong>Email:</strong> <a href="mailto:simulate.it.ne@gmail.com">simulate.it.ne@gmail.com</a></li>
           </ul>
-          <ul style="color:var(--muted);margin:1.25rem 0 0;padding-left:1.1rem;font-size:.95rem">
+          <ul style="color:var(--muted);margin:1rem 0 0;padding-left:1.1rem;font-size:.95rem">
             <li>Corporate functions &amp; private parties</li>
-            <li>TV-ready live leaderboard for competitions</li>
-            <li>Flexible packages priced per event</li>
+            <li>Bronze, Silver, Gold &amp; Corporate packages</li>
+            <li>Flexible pricing tailored to your event</li>
           </ul>
+          <div class="cta-row">
+            <a href="#contact-form" class="btn">Check Availability</a>
+            <a href="mailto:simulate.it.ne@gmail.com?subject=Simulate%20It%20enquiry" class="btn-secondary">Email Us</a>
+          </div>
         </div>
         <div class="form-card reveal">
           <form id="contact-form">
@@ -387,7 +577,7 @@
             <div class="form-group"><label for="email">Email address</label><input id="email" name="email" type="email" required autocomplete="email"></div>
             <div class="form-group"><label for="date">Event date</label><input id="date" name="date" type="date"></div>
             <div class="form-group"><label for="guests">Number of guests</label><input id="guests" name="guests" type="number" min="1"></div>
-            <div class="form-group"><label for="message">Message / requirements</label><textarea id="message" name="message" rows="4"></textarea></div>
+            <div class="form-group"><label for="message">Message / requirements</label><textarea id="message" name="message" rows="4" placeholder="Venue, event type, package interest…"></textarea></div>
             <button type="submit" class="submit-button">Send enquiry</button>
           </form>
         </div>
@@ -397,51 +587,81 @@
 
   <footer>
     <span>&copy; Simulate It — Golf simulator hire, North East England</span>
-    <a href="Leaderboard.html">Live Leaderboard</a>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="#pricing">Pricing</a>
+      <a href="#corporate">Corporate</a>
+      <a href="#faq">FAQ</a>
+    </nav>
   </footer>
+
+  <div class="mobile-cta-bar" aria-label="Quick actions">
+    <a href="#contact" class="btn">Get a Quote</a>
+    <a href="mailto:simulate.it.ne@gmail.com" class="btn-secondary">Email</a>
+  </div>
 
   <script>
     (function(){
       var toggle = document.getElementById('nav-toggle');
       var nav = document.getElementById('main-nav');
-
       function closeNav(){
         document.body.classList.remove('nav-open');
         toggle.setAttribute('aria-expanded', 'false');
         toggle.setAttribute('aria-label', 'Open menu');
       }
-
       toggle.addEventListener('click', function(){
         var open = document.body.classList.toggle('nav-open');
         toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
         toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
       });
-
-      nav.querySelectorAll('a').forEach(function(link){
-        link.addEventListener('click', function(){ closeNav(); });
+      nav.querySelectorAll('a[href^="#"]').forEach(function(link){
+        link.addEventListener('click', function(e){
+          closeNav();
+          var id = link.getAttribute('href');
+          if(!id || id === '#') return;
+          var target = document.querySelector(id);
+          if(!target) return;
+          e.preventDefault();
+          var offset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 56;
+          var top = target.getBoundingClientRect().top + window.scrollY - offset - 12;
+          window.scrollTo({ top: top, behavior: 'smooth' });
+          history.replaceState(null, '', id);
+        });
       });
-
-      document.addEventListener('keydown', function(e){
-        if(e.key === 'Escape') closeNav();
+      nav.querySelectorAll('a:not([href^="#"])').forEach(function(link){
+        link.addEventListener('click', closeNav);
       });
-
+      document.querySelectorAll('a[href^="#"]').forEach(function(link){
+        if(nav.contains(link)) return;
+        link.addEventListener('click', function(e){
+          var id = link.getAttribute('href');
+          if(!id || id === '#') return;
+          var target = document.querySelector(id);
+          if(!target) return;
+          e.preventDefault();
+          var offset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 56;
+          var top = target.getBoundingClientRect().top + window.scrollY - offset - 12;
+          window.scrollTo({ top: top, behavior: 'smooth' });
+          if(id === '#contact-form'){
+            setTimeout(function(){
+              var name = document.getElementById('name');
+              if(name) name.focus();
+            }, 400);
+          }
+        });
+      });
+      document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeNav(); });
       var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if(!reduced){
         var observer = new IntersectionObserver(function(entries){
           entries.forEach(function(entry){
-            if(entry.isIntersecting){
-              entry.target.classList.add('is-visible');
-              observer.unobserve(entry.target);
-            }
+            if(entry.isIntersecting){ entry.target.classList.add('is-visible'); observer.unobserve(entry.target); }
           });
         }, { rootMargin: '0px 0px -40px 0px', threshold: 0.08 });
-
         document.querySelectorAll('.reveal').forEach(function(el){ observer.observe(el); });
       } else {
         document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('is-visible'); });
       }
     })();
-
   </script>
   <script src="theme.js"></script>
   <script>
