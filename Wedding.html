@@ -42,6 +42,7 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
 
     html, body {
       min-height: 100%;
@@ -161,6 +162,12 @@
       margin-bottom: 0.35rem;
     }
 
+    .event-header .header-text {
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
     .event-header .hole-meta {
       color: var(--muted);
       font-size: clamp(1rem, 2vw, 1.25rem);
@@ -188,6 +195,9 @@
       .leaderboard-panel { grid-column: 2; grid-row: 1 / span 2; }
       .flyover-panel { grid-row: 1; }
       .side-panel { grid-row: 2; }
+      .container.no-flyover .side-panel { grid-row: 1; }
+      .container.no-side-panel .flyover-panel { grid-row: 1 / span 2; }
+      .container.no-flyover.no-side-panel .leaderboard-panel { grid-column: 1 / -1; grid-row: 1; }
     }
 
     .flyover-panel, .side-panel, .leaderboard-panel {
@@ -393,6 +403,16 @@
       font-style: italic;
     }
 
+    .event-notice {
+      margin-top: 1rem;
+      padding: 0.8rem 1rem;
+      border-left: 4px solid var(--primary);
+      border-radius: 12px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
     .fetch-error {
       display: none;
       margin-top: 0.7rem;
@@ -516,6 +536,9 @@
     body.tv-mode .flyover-panel { grid-column: 1; grid-row: 1; overflow: hidden; }
     body.tv-mode .side-panel { grid-column: 1; grid-row: 2; padding: 0.55rem 0.65rem; gap: 0.35rem; overflow: hidden; }
     body.tv-mode .leaderboard-panel { grid-column: 2; grid-row: 1 / span 2; padding: 0.55rem 0.65rem; overflow: hidden; height: 100%; }
+    body.tv-mode .container.no-flyover .side-panel { grid-row: 1 / span 2; }
+    body.tv-mode .container.no-side-panel .flyover-panel { grid-row: 1 / span 2; }
+    body.tv-mode .container.no-flyover.no-side-panel .leaderboard-panel { grid-column: 1 / -1; grid-row: 1 / span 2; }
 
     body.tv-mode .flyover-wrap {
       flex: 1 1 auto;
@@ -576,14 +599,15 @@
 
   <div class="page-wrap">
     <header class="event-header">
-      <p class="brand-line">With love</p>
+      <p class="brand-line" id="event-eyebrow">With love</p>
       <h1 id="competition-name">Loading event…</h1>
+      <p class="header-text" id="event-header-text" hidden></p>
       <p class="hole-meta" id="hole-name"></p>
       <p class="hole-length" id="hole-length" hidden></p>
     </header>
 
-    <div class="container">
-      <section class="flyover-panel" aria-label="Hole flyover">
+    <div class="container" id="event-container">
+      <section class="flyover-panel" id="flyover-panel" aria-label="Hole flyover">
         <div class="flyover-wrap" id="flyover-wrap">
           <video id="flyover-video" muted loop playsinline autoplay aria-label="Hole flyover video"></video>
           <p class="flyover-fallback" id="flyover-fallback">Flyover video unavailable</p>
@@ -591,15 +615,15 @@
         </div>
       </section>
 
-      <aside class="side-panel">
-        <div>
+      <aside class="side-panel" id="side-panel">
+        <div id="rules-block">
           <h2 id="rules-heading">Nearest To The Pin</h2>
           <div class="rules" id="rules-list">
             <p class="empty">Loading rules…</p>
           </div>
         </div>
-        <div class="prize-box">
-          <h3>Prizes</h3>
+        <div class="prize-box" id="prize-box">
+          <h3 id="prizes-heading">Prizes</h3>
           <div id="prize-list">
             <p class="empty">Loading prizes…</p>
           </div>
@@ -607,14 +631,15 @@
       </aside>
 
       <section class="leaderboard-panel">
-        <h2 class="leaderboard-title">Guest leaderboard</h2>
+        <h2 class="leaderboard-title" id="leaderboard-title">Guest leaderboard</h2>
         <div class="leaderboard-stack" id="leaderboard-body" role="list" aria-label="Leaderboard rankings">
           <p class="lb-empty">Waiting for first entry…</p>
         </div>
       </section>
     </div>
 
-    <p class="live-note">Scores update throughout the celebration.</p>
+    <p class="event-notice" id="event-notice" hidden></p>
+    <p class="live-note" id="footer-note">Scores update throughout the celebration.</p>
     <p class="fetch-error" id="fetch-error" role="alert">Unable to load live data. Check your connection and try again.</p>
   </div>
 
@@ -766,8 +791,10 @@
 
     (function () {
       const API_URL = "https://script.google.com/macros/s/AKfycbxdvuGY5SikEjbv_L4jBMmg3AZcWw2BExwOd76EAutpXxOpnCBH0dkJReNZmBbhFqD1/exec";
+
       const FLYOVER_BASE = "Photos/Flyover/";
       const MEDALS = ["🥇", "🥈", "🥉"];
+      const DEFAULT_FOOTER = "Scores update throughout the celebration.";
 
       let previousOrder = [];
       let previousLeader = null;
@@ -776,20 +803,36 @@
       let lastRulesSig = "";
       let lastPrizesSig = "";
       let lastEventSig = "";
+      let lastLayoutSig = "";
+      let lastThemeSig = "";
+      let refreshMilliseconds = 5000;
+      // Track the last rendered row count so we only trigger a TV layout
+      // recalculation when the number of rows actually changes (not on every poll).
       let lastRowCount = 0;
       const rowCache = new Map();
 
       const els = {
+        container:   document.getElementById("event-container"),
+        eyebrow:     document.getElementById("event-eyebrow"),
         competition: document.getElementById("competition-name"),
-        holeName: document.getElementById("hole-name"),
-        holeLength: document.getElementById("hole-length"),
-        rulesHeading: document.getElementById("rules-heading"),
-        rulesList: document.getElementById("rules-list"),
-        prizeList: document.getElementById("prize-list"),
-        flyoverVideo: document.getElementById("flyover-video"),
+        headerText:  document.getElementById("event-header-text"),
+        holeName:    document.getElementById("hole-name"),
+        holeLength:  document.getElementById("hole-length"),
+        rulesBlock:  document.getElementById("rules-block"),
+        rulesHeading:document.getElementById("rules-heading"),
+        rulesList:   document.getElementById("rules-list"),
+        sidePanel:   document.getElementById("side-panel"),
+        prizeBox:    document.getElementById("prize-box"),
+        prizesHeading:document.getElementById("prizes-heading"),
+        prizeList:   document.getElementById("prize-list"),
+        flyoverPanel:document.getElementById("flyover-panel"),
+        flyoverVideo:document.getElementById("flyover-video"),
         flyoverWrap: document.getElementById("flyover-wrap"),
-        flyoverLabel: document.getElementById("flyover-label"),
-        fetchError: document.getElementById("fetch-error")
+        flyoverLabel:document.getElementById("flyover-label"),
+        leaderboardTitle:document.getElementById("leaderboard-title"),
+        notice:      document.getElementById("event-notice"),
+        footer:      document.getElementById("footer-note"),
+        fetchError:  document.getElementById("fetch-error")
       };
 
       function escapeHtml(text) {
@@ -798,88 +841,111 @@
         return div.innerHTML;
       }
 
-      function flyoverPath(key) {
-        if (!key || !String(key).trim()) return "";
-        return FLYOVER_BASE + encodeURIComponent(String(key).trim()) + ".mp4";
+      function boolFromValue(value, fallback) {
+        if (value === undefined || value === null || value === "") return fallback;
+        if (typeof value === "boolean") return value;
+        const normalized = String(value).trim().toLowerCase();
+        if (["true", "1", "yes", "y", "on"].includes(normalized)) return true;
+        if (["false", "0", "no", "n", "off"].includes(normalized)) return false;
+        return fallback;
+      }
+
+      function objectOrEmpty(value) {
+        return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+      }
+
+      function textOr(value, fallback) {
+        return value === undefined || value === null ? fallback : String(value).trim();
+      }
+
+      function updateTheme(theme) {
+        const colors = objectOrEmpty(theme);
+        const signature = JSON.stringify(colors);
+        if (signature === lastThemeSig) return;
+        lastThemeSig = signature;
+        const validColor = value => typeof value === "string" && /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?$/.test(value.trim());
+        const light = [];
+        const dark = [];
+        if (validColor(colors.accent)) {
+          light.push("--primary:" + colors.accent.trim());
+          dark.push("--primary:" + colors.accent.trim());
+        }
+        if (validColor(colors.accentDark)) {
+          light.push("--primary-strong:" + colors.accentDark.trim());
+          dark.push("--primary-strong:" + colors.accentDark.trim());
+        }
+        if (validColor(colors.background)) light.push("--bg:" + colors.background.trim());
+        if (validColor(colors.text)) light.push("--text:" + colors.text.trim());
+        let style = document.getElementById("feed-theme");
+        if (!style) {
+          style = document.createElement("style");
+          style.id = "feed-theme";
+          document.head.appendChild(style);
+        }
+        style.textContent = (light.length ? ':root:not([data-theme="dark"]){' + light.join(";") + "}" : "") +
+          (dark.length ? '[data-theme="dark"]{' + dark.join(";") + "}" : "");
+      }
+
+      function flyoverPath(file) {
+        const value = textOr(file, "");
+        if (!value || /^\/\//.test(value) || /^(?:javascript|data):/i.test(value)) return "";
+        if (/^https?:\/\//i.test(value)) return value;
+        const path = value.replace(/^\.\//, "");
+        const relative = /^(?:Photos\/Flyover\/)/i.test(path) ? path : FLYOVER_BASE + path;
+        return relative.split("/").map(encodeURIComponent).join("/") + (/\.mp4(?:[?#].*)?$/i.test(relative) ? "" : ".mp4");
       }
 
       function renderRules(rules) {
-        const items = (rules || []).map(r => String(r).trim()).filter(Boolean);
+        const settings = objectOrEmpty(rules);
+        els.rulesBlock.hidden = !boolFromValue(settings.show, true);
+        els.rulesHeading.textContent = textOr(settings.heading, "Rules") || "Rules";
+        const items = (Array.isArray(settings.lines) ? settings.lines : []).map(line => textOr(line, "")).filter(Boolean);
         const sig = JSON.stringify(items);
         if (sig === lastRulesSig) return;
         lastRulesSig = sig;
-
-        if (!items.length) {
-          els.rulesHeading.textContent = "Nearest To The Pin";
-          els.rulesList.innerHTML = '<p class="empty">Rules will appear here</p>';
-          return;
-        }
-
-        els.rulesHeading.textContent = items[0];
-        els.rulesList.innerHTML = items.length === 1 ? "" : items.slice(1).map(line => "<p>" + escapeHtml(line) + "</p>").join("");
-      }
-
-      function renderEvent(data) {
-        const eventSig = JSON.stringify({
-          competitionName: data.competitionName || "Live Event",
-          holeName: data.holeName || "",
-          holeLength: data.holeLength || ""
-        });
-
-        if (eventSig !== lastEventSig) {
-          lastEventSig = eventSig;
-          els.competition.textContent = data.competitionName || "Live Event";
-          els.holeName.textContent = data.holeName ? data.holeName : "";
-          els.holeName.hidden = !data.holeName;
-
-          if (data.holeLength) {
-            els.holeLength.textContent = "Hole length: " + data.holeLength;
-            els.holeLength.hidden = false;
-          } else {
-            els.holeLength.hidden = true;
-          }
-        }
-
-        renderRules(data.rules);
-        renderPrizes(data.prizes || []);
-        renderFlyover(data.flyover, data.holeName);
+        els.rulesList.innerHTML = items.length
+          ? items.map(line => "<p>" + escapeHtml(line) + "</p>").join("")
+          : '<p class="empty">Rules will appear here</p>';
       }
 
       function renderPrizes(prizes) {
-        const filtered = prizes.filter(p =>
-          (p.place && String(p.place).trim()) || (p.prize && String(p.prize).trim())
-        );
-        const sig = JSON.stringify(filtered);
+        const settings = objectOrEmpty(prizes);
+        els.prizeBox.hidden = !boolFromValue(settings.show, true);
+        els.prizesHeading.textContent = textOr(settings.heading, "Prizes") || "Prizes";
+        const items = (Array.isArray(settings.items) ? settings.items : []).filter(item => item && typeof item === "object");
+        const autoMedals = boolFromValue(settings.autoMedals, false);
+        const sig = JSON.stringify({items, autoMedals});
         if (sig === lastPrizesSig) return;
         lastPrizesSig = sig;
-
-        if (!filtered.length) {
-          els.prizeList.innerHTML = '<p class="empty">Prizes to be announced</p>';
-          return;
-        }
-
-        els.prizeList.innerHTML = filtered.map((p, i) => {
-          const medal = i < 3 ? MEDALS[i] + " " : "";
-          const place = p.place ? escapeHtml(p.place) : "Prize " + (i + 1);
-          const prize = p.prize ? escapeHtml(p.prize) : "";
-          return "<p>" + medal + place + (prize ? ": " + prize : "") + "</p>";
-        }).join("");
+        els.prizeList.innerHTML = items.length
+          ? items.map((item, index) => {
+              const medal = autoMedals && index < MEDALS.length ? MEDALS[index] + " " : "";
+              const place = escapeHtml(textOr(item.place, "") || "Prize " + (index + 1));
+              const prize = escapeHtml(textOr(item.prize, ""));
+              return "<p>" + medal + place + (prize ? ": " + prize : "") + "</p>";
+            }).join("")
+          : '<p class="empty">Prizes to be announced</p>';
       }
 
-      function renderFlyover(flyoverKey, holeLabel) {
-        const key = flyoverKey ? String(flyoverKey).trim() : "";
-        els.flyoverLabel.textContent = holeLabel ? "Flyover — " + holeLabel : (key ? "Hole flyover" : "Flyover");
-
-        if (!key) {
+      function renderFlyover(flyover, holeName) {
+        const settings = objectOrEmpty(flyover);
+        const show = boolFromValue(settings.show, Boolean(settings.file));
+        const src = show ? flyoverPath(settings.file) : "";
+        els.flyoverPanel.hidden = !show;
+        els.flyoverLabel.textContent = textOr(settings.label, "") ||
+          (holeName ? "Flyover — " + holeName : "Hole flyover");
+        if (!src) {
           els.flyoverWrap.classList.add("no-video");
-          els.flyoverVideo.removeAttribute("src");
+          if (lastFlyoverKey) {
+            els.flyoverVideo.pause();
+            els.flyoverVideo.removeAttribute("src");
+            els.flyoverVideo.load();
+          }
           lastFlyoverKey = "";
           return;
         }
-        if (key === lastFlyoverKey) return;
-        lastFlyoverKey = key;
-
-        const src = flyoverPath(key);
+        if (src === lastFlyoverKey) return;
+        lastFlyoverKey = src;
         els.flyoverWrap.classList.remove("no-video");
         els.flyoverVideo.src = src;
         els.flyoverVideo.load();
@@ -888,11 +954,68 @@
         els.flyoverVideo.onloadeddata = () => els.flyoverWrap.classList.remove("no-video");
       }
 
-      function leaderboardSignature(sorted) {
-        return JSON.stringify(sorted.map(p => ({ name: p.name, bestDistance: p.bestDistance })));
+      function renderEvent(data) {
+        const event = objectOrEmpty(data.event);
+        const legacy = !data.event;
+        const title = textOr(event.title, legacy ? textOr(data.competitionName, "Live Event") : "Live Event") || "Live Event";
+        const eyebrow = textOr(event.eyebrow, legacy ? "With love" : "");
+        const headerText = textOr(event.headerText, "");
+        const holeName = textOr(event.holeName, legacy ? textOr(data.holeName, "") : "");
+        const holeLength = textOr(event.holeLength, legacy ? textOr(data.holeLength, "") : "");
+        const holeLengthLabel = textOr(event.holeLengthLabel, "Hole length");
+        const notice = objectOrEmpty(data.notice);
+        const footer = textOr(data.footerNote, legacy ? DEFAULT_FOOTER : "");
+        const eventSig = JSON.stringify({title, eyebrow, headerText, holeName, holeLength, holeLengthLabel, notice, footer});
+        const eventChanged = eventSig !== lastEventSig;
+        if (eventChanged) {
+          lastEventSig = eventSig;
+          els.eyebrow.textContent = eyebrow;
+          els.eyebrow.hidden = !eyebrow;
+          els.competition.textContent = title;
+          els.headerText.textContent = headerText;
+          els.headerText.hidden = !headerText;
+          els.holeName.textContent = holeName;
+          els.holeName.hidden = !holeName;
+          els.holeLength.textContent = holeLength ? (holeLengthLabel ? holeLengthLabel + ": " : "") + holeLength : "";
+          els.holeLength.hidden = !holeLength;
+          const noticeText = textOr(notice.text, "");
+          els.notice.textContent = noticeText;
+          els.notice.hidden = !boolFromValue(notice.show, false) || !noticeText;
+          els.footer.textContent = footer;
+          els.footer.hidden = !footer;
+        }
+
+        const config = objectOrEmpty(data.config);
+        const oldRules = Array.isArray(data.rules) ? data.rules : [];
+        const legacyRuleHeading = textOr(config.rulesHeading, "");
+        renderRules(Array.isArray(data.rules) ? {
+          show: boolFromValue(config.showRules, true),
+          heading: legacyRuleHeading || textOr(oldRules[0], "Nearest To The Pin"),
+          lines: legacyRuleHeading ? oldRules : oldRules.slice(1)
+        } : data.rules);
+        renderPrizes(Array.isArray(data.prizes) ? {
+          show: boolFromValue(config.showPrizes, true),
+          heading: textOr(config.prizesHeading, "Prizes"),
+          autoMedals: true,
+          items: data.prizes
+        } : data.prizes);
+        renderFlyover(typeof data.flyover === "string" ? {show: Boolean(data.flyover), file: data.flyover} : data.flyover, holeName);
+        const showSide = !els.rulesBlock.hidden || !els.prizeBox.hidden;
+        els.sidePanel.hidden = !showSide;
+        els.container.classList.toggle("no-flyover", els.flyoverPanel.hidden);
+        els.container.classList.toggle("no-side-panel", !showSide);
+        const layoutSig = JSON.stringify([els.flyoverPanel.hidden, !showSide, els.rulesBlock.hidden, els.prizeBox.hidden]);
+        const layoutChanged = layoutSig !== lastLayoutSig;
+        if (layoutChanged) {
+          lastLayoutSig = layoutSig;
+        }
+        if ((eventChanged || layoutChanged) && document.body.classList.contains("tv-mode")) {
+          window.dispatchEvent(new CustomEvent("tv-mode-change", {detail: {active: true}}));
+        }
+        updateTheme(data.theme);
       }
 
-      function applyRowClasses(row, index, leaderChanged, playerName, prevOrder) {
+      function applyRowClasses(row, index, leaderChanged, playerId, prevOrder) {
         row.className = "lb-row";
         if (index === 0) {
           row.classList.add("gold", "leader");
@@ -902,46 +1025,71 @@
         } else if (index === 2) {
           row.classList.add("bronze");
         }
-
-        if (prevOrder.includes(playerName)) {
-          const oldIndex = prevOrder.indexOf(playerName);
+        if (prevOrder.includes(playerId)) {
+          const oldIndex = prevOrder.indexOf(playerId);
           if (oldIndex !== index) row.classList.add("moved");
         }
       }
 
-      function renderLeaderboard(rows) {
-        const stack = document.getElementById("leaderboard-body");
-        const sorted = (rows || []).slice().sort((a, b) => a.bestDistance - b.bestDistance).slice(0, 10);
-        const sig = leaderboardSignature(sorted);
+      function renderLeaderboard(leaderboard, config) {
+        const stack  = document.getElementById("leaderboard-body");
+        const settings = Array.isArray(leaderboard) ? objectOrEmpty(config) : objectOrEmpty(leaderboard);
+        const rows = Array.isArray(leaderboard) ? leaderboard : settings.entries;
+        const showMedals = boolFromValue(settings.showMedals, true);
+        const medalLabels = Array.isArray(settings.medalLabels)
+          ? settings.medalLabels.map(String)
+          : MEDALS;
+        const decimalsValue = Number(settings.decimals);
+        const decimals = settings.decimals === "" || settings.decimals == null || !Number.isFinite(decimalsValue)
+          ? 2 : Math.max(0, Math.min(6, Math.trunc(decimalsValue)));
+        const unit = textOr(settings.unit, "");
+        const emptyText = textOr(settings.emptyText, "Waiting for first entry…") || "Waiting for first entry…";
+        const title = textOr(settings.title, "Guest leaderboard") || "Guest leaderboard";
+        const titleChanged = els.leaderboardTitle.textContent !== title;
+        els.leaderboardTitle.textContent = title;
+        if (titleChanged && document.body.classList.contains("tv-mode")) {
+          window.dispatchEvent(new CustomEvent("tv-mode-change", {detail: {active: true}}));
+        }
+        const sorted = (Array.isArray(rows) ? rows : [])
+          .filter(player => player && typeof player === "object" && textOr(player.name, "") &&
+            player.bestDistance !== "" && player.bestDistance !== null &&
+            player.bestDistance !== undefined && Number.isFinite(Number(player.bestDistance)))
+          .sort((a, b) => a.bestDistance - b.bestDistance)
+          .slice(0, 10);
+
+        const keyed = sorted.map((player, index) => ({
+          id: textOr(player.id, "") || textOr(player.name, ""),
+          name: textOr(player.name, ""),
+          bestDistance: Number(player.bestDistance)
+        }));
+        const sig = JSON.stringify({keyed, showMedals, medalLabels, decimals, unit, emptyText});
         if (sig === lastLeaderboardSig) return;
 
-        const newOrder = sorted.map(p => p.name);
-        const currentLeader = sorted.length ? sorted[0].name : null;
-        const leaderChanged = currentLeader && previousLeader && currentLeader !== previousLeader;
-        const rowCountChanged = sorted.length !== lastRowCount;
+        const newOrder       = keyed.map(p => p.id);
+        const currentLeader  = keyed.length ? keyed[0].id : null;
+        const leaderChanged  = currentLeader && previousLeader && currentLeader !== previousLeader;
+        const rowCountChanged = keyed.length !== lastRowCount;
 
-        if (!sorted.length) {
-          if (!stack.querySelector(".lb-empty")) {
-            stack.innerHTML = '<p class="lb-empty">Waiting for first entry…</p>';
-            rowCache.clear();
-          }
+        if (!keyed.length) {
+          stack.innerHTML = "";
+          const empty = document.createElement("p");
+          empty.className = "lb-empty";
+          empty.textContent = emptyText;
+          stack.appendChild(empty);
+          rowCache.clear();
           previousOrder = [];
           previousLeader = null;
           lastLeaderboardSig = sig;
           lastRowCount = 0;
+          if (document.body.classList.contains("tv-mode") && rowCountChanged) {
+            window.dispatchEvent(new CustomEvent("tv-mode-change", {detail: {active: true}}));
+          }
           return;
         }
 
-        const emptyEl = stack.querySelector(".lb-empty");
-        if (emptyEl) {
-          stack.innerHTML = "";
-          rowCache.clear();
-        }
-
-        const usedNames = new Set();
-
-        sorted.forEach((player, index) => {
-          let row = rowCache.get(player.name);
+        const usedIds = new Set();
+        const orderedRows = keyed.map((player, index) => {
+          let row = rowCache.get(player.id);
           if (!row) {
             row = document.createElement("div");
             row.setAttribute("role", "listitem");
@@ -949,29 +1097,25 @@
               '<span class="lb-rank"></span>' +
               '<span class="lb-name"></span>' +
               '<span class="lb-distance"></span>';
-            rowCache.set(player.name, row);
+            rowCache.set(player.id, row);
           }
-          usedNames.add(player.name);
-
-          applyRowClasses(row, index, leaderChanged, player.name, previousOrder);
-          row.querySelector(".lb-rank").textContent = index < 3 ? MEDALS[index] : String(index + 1);
-          row.querySelector(".lb-name").textContent = player.name;
-          row.querySelector(".lb-distance").textContent = Number(player.bestDistance).toFixed(2);
-
-          stack.appendChild(row);
+          usedIds.add(player.id);
+          applyRowClasses(row, index, leaderChanged, player.id, previousOrder);
+          const rankLabel = showMedals && index < medalLabels.length ? medalLabels[index] : String(index + 1);
+          row.querySelector(".lb-rank").textContent     = rankLabel;
+          row.querySelector(".lb-name").textContent     = player.name;
+          row.querySelector(".lb-distance").textContent = player.bestDistance.toFixed(decimals) + (unit ? " " + unit : "");
+          return row;
+        });
+        stack.replaceChildren(...orderedRows);
+        rowCache.forEach((row, id) => {
+          if (!usedIds.has(id)) rowCache.delete(id);
         });
 
-        rowCache.forEach((row, name) => {
-          if (!usedNames.has(name)) {
-            row.remove();
-            rowCache.delete(name);
-          }
-        });
-
-        previousOrder = newOrder;
-        previousLeader = currentLeader;
+        previousOrder      = newOrder;
+        previousLeader     = currentLeader;
         lastLeaderboardSig = sig;
-        lastRowCount = sorted.length;
+        lastRowCount       = keyed.length;
 
         if (document.body.classList.contains("tv-mode") && rowCountChanged) {
           window.dispatchEvent(new CustomEvent("tv-mode-change", { detail: { active: true } }));
@@ -980,21 +1124,25 @@
 
       async function fetchEventData() {
         try {
-          const response = await fetch(API_URL);
+          const response = await fetch(API_URL, {cache: "no-store"});
           if (!response.ok) throw new Error("HTTP " + response.status);
           const data = await response.json();
+          if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("Invalid event data");
 
           renderEvent(data);
-          renderLeaderboard(data.leaderboard);
+          renderLeaderboard(data.leaderboard, data.config || {});
+          const seconds = Number(data.refreshSeconds);
+          refreshMilliseconds = Number.isFinite(seconds) && seconds >= 1 ? Math.min(seconds, 3600) * 1000 : 5000;
           els.fetchError.classList.remove("visible");
         } catch (error) {
           console.error("Leaderboard fetch failed", error);
           els.fetchError.classList.add("visible");
+        } finally {
+          setTimeout(fetchEventData, refreshMilliseconds);
         }
       }
 
       fetchEventData();
-      setInterval(fetchEventData, 3000);
     })();
   </script>
 </body>
